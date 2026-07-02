@@ -1,0 +1,14 @@
+{
+  "name": "pmverse-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PMVerse prototype — Simulation Engine vertical slice: The Retention Cliff",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.90.0",
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PMVerse — OS Simulation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  
+  <div id="desktop">
+    <!-- Top Menu Bar -->
+    <header class="os-menubar" id="os-menubar" hidden>
+      <div class="os-menu-left">
+        <span class="os-logo">⌘</span>
+        <span class="os-menu-item bold">PMVerse</span>
+        <span class="os-menu-item">NovaCart Simulation</span>
+        <span class="mode-badge" id="mode-badge" title="Stakeholder AI mode">checking…</span>
+      </div>
+      <div class="os-menu-right">
+        <div class="xp-pills" id="xp-pills"></div>
+        <div class="os-time" id="time-widget">
+          Time to Board Meeting: <strong id="days-remaining">42 Days</strong>
+        </div>
+        <div class="os-clock" id="os-clock" style="margin-left: 16px; font-weight: 500; opacity: 0.9;">--:--</div>
+        <button id="theme-toggle" style="background: none; border: none; cursor: pointer; color: var(--text-dim); font-size: 14px; margin-left: 16px;" title="Toggle Theme">☀️</button>
+      </div>
+    </header>
+
+    <!-- Global Metrics HUD -->
+    <div id="os-metrics-hud" style="position: absolute; top: 50px; right: 20px; z-index: 100; display: none; flex-direction: column; gap: 8px;">
+      <div class="metric-card tooltip-container" style="background: var(--bg-panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); backdrop-filter: blur(10px);">
+        <div class="metric-icon" style="font-size: 20px;">📉</div>
+        <div class="metric-info" style="display: flex; flex-direction: column;">
+          <div class="metric-label" style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.5px; font-weight: 700;">Runway</div>
+          <div class="metric-value" id="hud-runway" style="font-size: 16px; font-weight: bold; color: var(--text);">$1.2M</div>
+        </div>
+      </div>
+      <div class="metric-card tooltip-container" style="background: var(--bg-panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); backdrop-filter: blur(10px);">
+        <div class="metric-icon" style="font-size: 20px;">🤝</div>
+        <div class="metric-info" style="display: flex; flex-direction: column;">
+          <div class="metric-label" style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.5px; font-weight: 700;">Trust</div>
+          <div class="metric-value" id="hud-trust" style="font-size: 16px; font-weight: bold; color: var(--accent);">80%</div>
+        </div>
+      </div>
+      <div class="metric-card tooltip-container" style="background: var(--bg-panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); backdrop-filter: blur(10px);">
+        <div class="metric-icon" style="font-size: 20px;">💡</div>
+        <div class="metric-info" style="display: flex; flex-direction: column;">
+          <div class="metric-label" style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.5px; font-weight: 700;">Morale</div>
+          <div class="metric-value" id="hud-morale" style="font-size: 16px; font-weight: bold; color: #4ade80;">90%</div>
+        </div>
+      </div>
+    </div>
+    <!-- Briefing Screen (FullScreen Modal initially) -->
+    <section class="screen fullscreen-modal" id="screen-briefing">
+      <div class="mission-card">
+        <p class="mission-kicker">Mission 01 · Startup Track · NovaCart</p>
+        <h1 class="mission-title">The Retention Cliff</h1>
+        <p class="mission-lede">
+          You are <strong>Alex</strong>, the newly hired Senior Product Manager at
+          <strong>NovaCart</strong> — a Series A e-commerce startup selling sustainable
+          home goods. Week-4 retention has collapsed from <strong>38% to 22%</strong> in
+          two months. Revenue is down 18%. The board meets in six weeks, and everyone
+          has a theory. Your job: find the truth, pick one bet, and defend it.
+        </p>
+        <div class="mission-grid">
+          <div class="mission-box">
+            <h3>Objectives</h3>
+            <ul>
+              <li>Diagnose why retention is collapsing</li>
+              <li>Choose one intervention the team can ship</li>
+              <li>Be ready to defend it to the board</li>
+            </ul>
+          </div>
+          <div class="mission-box">
+            <h3>Constraints</h3>
+            <ul>
+              <li>4 engineers — one bet at a time</li>
+              <li>6 weeks until the board meeting</li>
+              <li>The CEO already has a favorite idea</li>
+            </ul>
+          </div>
+          <div class="mission-box">
+            <h3>How you earn XP</h3>
+            <ul>
+              <li><b>Discovery</b> — interview stakeholders</li>
+              <li><b>Analytics</b> — study the data room</li>
+              <li><b>Strategy &amp; Leadership</b> — decide well</li>
+            </ul>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-start">Boot OS Workspace →</button>
+      </div>
+    </section>
+
+    <!-- Outcome Screen (FullScreen Modal at the end) -->
+    <section class="screen fullscreen-modal" id="screen-outcome" hidden>
+      <div class="outcome-wrap" id="outcome-wrap"></div>
+    </section>
+
+    <!-- Game Over Screen (FullScreen Modal for failure) -->
+    <section class="screen fullscreen-modal" id="screen-gameover" hidden style="background: rgba(153, 27, 27, 0.9); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+      <h1 style="font-size: 80px; color: white; margin-bottom: 20px; font-weight: 800; letter-spacing: -2px;">FIRED.</h1>
+      <p id="gameover-reason" style="font-size: 24px; color: rgba(255,255,255,0.8); max-width: 600px; margin-bottom: 40px; line-height: 1.5;">You ran out of runway before finding Product-Market Fit.</p>
+      <button class="btn-primary" style="background: white; color: #991b1b; padding: 16px 32px; font-size: 20px; border-radius: 12px;" onclick="location.reload()">Restart Simulation</button>
+    </section>
+
+    <!-- Desktop Icons -->
+    <div class="desktop-icons" id="desktop-icons" hidden style="position: absolute; top: 60px; right: 20px; display: flex; flex-direction: column; gap: 20px; align-items: flex-end; z-index: 10;">
+      <div class="desktop-icon" data-app="win-academy" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 80px;">
+        <div class="d-icon-img" style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #a855f7, #7e22ce); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">🎓</div>
+        <div class="d-icon-label" style="margin-top: 6px; font-size: 12px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-align: center; line-height: 1.2;">PM Academy</div>
+      </div>
+      <div class="desktop-icon" data-app="win-data" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 80px;">
+        <div class="d-icon-img" style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #3fd0b6, #1c9e87); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">📊</div>
+        <div class="d-icon-label" style="margin-top: 6px; font-size: 12px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-align: center; line-height: 1.2;">Amplitude</div>
+      </div>
+    </div>
+
+    <!-- OS Windows Container -->
+    <div id="window-container">
+      
+      <!-- NovaChat Window -->
+      <div class="os-window" id="win-chat" style="display: none; top: 60px; left: 80px; width: 680px; height: 500px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-chat"></button>
+            <button class="os-win-min" data-win="win-chat"></button>
+            <button class="os-win-max" data-win="win-chat"></button>
+          </div>
+          <div class="os-window-title">NovaChat</div>
+        </div>
+        <div class="os-window-content chat-layout">
+          <aside class="sidebar chat-sidebar">
+            <h3 class="sidebar-title">Stakeholders</h3>
+            <div id="persona-list"></div>
+          </aside>
+          <div class="workpane">
+            <div id="chat-pane">
+              <div class="chat-header" id="chat-header"></div>
+              <div class="chat-log" id="chat-log"></div>
+              <form class="chat-input" id="chat-form">
+                <input type="text" id="chat-text" placeholder="Ask a question…" autocomplete="off" />
+                <button type="submit" id="chat-send">Send</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mail Window -->
+      <div class="os-window" id="win-mail" style="display: none; top: 120px; left: 160px; width: 800px; height: 550px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-mail"></button>
+            <button class="os-win-min" data-win="win-mail"></button>
+            <button class="os-win-max" data-win="win-mail"></button>
+          </div>
+          <div class="os-window-title">Mail</div>
+        </div>
+        <div class="os-window-content">
+          <div id="inbox-pane">
+            <div class="inbox-header">
+              <h2>Inbox</h2>
+              <p>Company emails and notifications</p>
+            </div>
+            <div class="inbox-layout">
+              <div class="inbox-list" id="inbox-list"></div>
+              <div class="inbox-detail" id="inbox-detail" hidden></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amplitude / Data Room Window -->
+      <div class="os-window" id="win-data" style="display: none; top: 80px; left: 240px; width: 900px; height: 620px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-data"></button>
+            <button class="os-win-min" data-win="win-data"></button>
+            <button class="os-win-max" data-win="win-data"></button>
+          </div>
+          <div class="os-window-title">Amplitude Analytics</div>
+        </div>
+        <div class="os-window-content">
+          <div id="data-pane">
+            <div class="data-header">
+              <h2>Data Room</h2>
+              <p>Sara pinned these before you arrived. Click a card to examine it.</p>
+              <div class="evidence-meter" style="width: 300px; margin-top: 10px;">
+                <div class="evidence-label">Evidence gathered <span id="evidence-count">0/8</span></div>
+                <div class="evidence-bar"><div class="evidence-fill" id="evidence-fill"></div></div>
+              </div>
+            </div>
+            <div class="data-grid" id="data-grid"></div>
+            <div class="data-detail" id="data-detail" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decision Center Window -->
+      <div class="os-window" id="win-decide" style="display: none; top: 150px; left: 150px; width: 950px; height: 500px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-decide" id="btn-close-decide"></button>
+            <button class="os-win-min" data-win="win-decide"></button>
+            <button class="os-win-max" data-win="win-decide"></button>
+          </div>
+          <div class="os-window-title">Decision Center</div>
+        </div>
+        <div class="os-window-content">
+          <div class="decide-wrap">
+            <h1 class="decide-title">Place your bet</h1>
+            <p class="decide-sub">Four engineers. Six weeks to the board. You get <strong>one</strong> of these.</p>
+            <div class="decision-grid" id="decision-grid"></div>
+            <div class="decide-footer">
+              <button class="btn-primary" id="btn-commit" disabled>Commit decision</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PM Academy Window -->
+      <div class="os-window" id="win-academy" style="display: none; top: 90px; left: 180px; width: 900px; height: 600px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-academy"></button>
+            <button class="os-win-min" data-win="win-academy"></button>
+            <button class="os-win-max" data-win="win-academy"></button>
+          </div>
+          <div class="os-window-title">PM Academy</div>
+        </div>
+        <div class="os-window-content chat-layout">
+          <aside class="sidebar academy-sidebar" style="width: 260px;">
+            <h3 class="sidebar-title" style="margin-bottom: 12px; font-size: 11px; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.5px;">Product Domains</h3>
+            <div id="domain-list" style="display: flex; flex-direction: column; gap: 4px;"></div>
+          </aside>
+          <div class="workpane" style="background: var(--bg-raised); position: relative; overflow: hidden; display: flex; flex-direction: column;">
+            
+            <!-- Gamified Skill Grid View -->
+            <div id="skill-grid-view" style="padding: 40px; overflow-y: auto; flex: 1;">
+              <h2 id="domain-title" style="margin-bottom: 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Welcome to PMVerse</h2>
+              <p id="domain-desc" style="color: var(--text-dim); margin-bottom: 40px; font-size: 15px;">Select a Product Domain from the sidebar to explore the Skill Universe.</p>
+              <div id="skill-nodes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;"></div>
+            </div>
+
+            <!-- Duolingo-style Lesson View -->
+            <div id="lesson-view" style="padding: 0; flex: 1; min-height: 0; display: none; flex-direction: column; background: var(--bg);">
+              <!-- Top Header (Progress & Hearts) -->
+              <div style="display: flex; align-items: center; gap: 16px; padding: 16px 24px;">
+                <button class="btn-ghost" id="btn-quit-lesson" style="font-weight: bold; font-size: 20px; padding: 4px 8px; color: var(--text-dim);">✕</button>
+                <div style="flex: 1; height: 16px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; position: relative;">
+                  <div id="lesson-progress-bar" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #4ade80; border-radius: 99px; transition: width 0.3s ease;">
+                    <div style="position: absolute; top: 4px; left: 8px; right: 8px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 99px;"></div>
+                  </div>
+                </div>
+                <div id="lesson-hearts" style="font-weight: bold; font-size: 18px; color: #ef4444; display: flex; align-items: center; gap: 4px;">
+                  ❤️ 5
+                </div>
+              </div>
+              
+              <!-- Center Quiz Area -->
+              <div id="lesson-content" style="flex: 1; min-height: 0; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; max-width: 600px; margin: 0 auto; width: 100%;">
+                <!-- Dynamic quiz injected here -->
+              </div>
+              
+              <!-- Bottom Drawer (Check Button / Feedback) -->
+              <div id="lesson-footer" style="padding: 24px; border-top: 2px solid var(--line); display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;">
+                <div id="lesson-feedback" style="font-weight: bold; font-size: 20px; display: none;"></div>
+                <button id="btn-lesson-check" class="btn-primary" style="padding: 16px 32px; font-size: 18px; border-radius: 12px; width: 100%; text-transform: uppercase; font-weight: bold;" disabled>Check</button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- New Windows Added for Option B -->
+      <div class="os-window" id="win-prd" style="display: none; top: 60px; left: 100px; width: 900px; height: 600px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-prd"></button>
+            <button class="os-win-min" data-win="win-prd"></button>
+            <button class="os-win-max" data-win="win-prd"></button>
+          </div>
+          <div class="os-window-title">Interactive PRD Builder</div>
+        </div>
+        <div class="os-window-content" id="prd-content" style="padding: 0; display: flex; flex-direction: column;">
+          <!-- Injected by prd_engine.js -->
+        </div>
+      </div>
+
+      <div class="os-window" id="win-interview" style="display: none; top: 80px; left: 120px; width: 800px; height: 600px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-interview"></button>
+            <button class="os-win-min" data-win="win-interview"></button>
+            <button class="os-win-max" data-win="win-interview"></button>
+          </div>
+          <div class="os-window-title">AI Mock Interview</div>
+        </div>
+        <div class="os-window-content" id="interview-content" style="padding: 0; display: flex; flex-direction: column;">
+          <!-- Injected by interview_engine.js -->
+        </div>
+      </div>
+
+      <!-- Sheets Window -->
+      <div class="os-window" id="win-sheets" style="display: none; top: 70px; left: 150px; width: 900px; height: 600px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-sheets"></button>
+            <button class="os-win-min" data-win="win-sheets"></button>
+            <button class="os-win-max" data-win="win-sheets"></button>
+          </div>
+          <div class="os-window-title">NovaSheets</div>
+        </div>
+        <div class="os-window-content" id="sheets-content" style="padding: 0; display: flex; flex-direction: column;">
+          <!-- Injected by sheets_engine.js -->
+        </div>
+      </div>
+
+      <!-- SQL Window -->
+      <div class="os-window" id="win-sql" style="display: none; top: 120px; left: 200px; width: 800px; height: 500px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-sql"></button>
+            <button class="os-win-min" data-win="win-sql"></button>
+            <button class="os-win-max" data-win="win-sql"></button>
+          </div>
+          <div class="os-window-title">NovaData SQL Console</div>
+        </div>
+        <div class="os-window-content" id="sql-content" style="padding: 0; display: flex; flex-direction: column;">
+          <!-- Injected by sql_engine.js -->
+        </div>
+      </div>
+
+      <!-- SAT Window -->
+      <div class="os-window" id="win-sat" style="display: none; top: 150px; left: 250px; width: 600px; height: 450px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-sat"></button>
+            <button class="os-win-min" data-win="win-sat"></button>
+            <button class="os-win-max" data-win="win-sat"></button>
+          </div>
+          <div class="os-window-title">Growth SAT</div>
+        </div>
+        <div class="os-window-content" id="sat-content" style="padding: 0; display: flex; flex-direction: column;">
+        </div>
+      </div>
+
+      <!-- Sprint Window -->
+      <div class="os-window" id="win-sprint" style="display: none; top: 80px; left: 100px; width: 900px; height: 600px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-sprint"></button>
+            <button class="os-win-min" data-win="win-sprint"></button>
+            <button class="os-win-max" data-win="win-sprint"></button>
+          </div>
+          <div class="os-window-title">Agile Sprint Board</div>
+        </div>
+        <div class="os-window-content" id="sprint-content" style="padding: 0; display: flex; flex-direction: column;">
+        </div>
+      </div>
+
+      <!-- Portfolio Window -->
+      <div class="os-window" id="win-portfolio" style="display: none; top: 50px; left: 150px; width: 850px; height: 700px;">
+        <div class="os-window-titlebar">
+          <div class="os-window-controls">
+            <button class="os-win-close" data-win="win-portfolio"></button>
+            <button class="os-win-min" data-win="win-portfolio"></button>
+            <button class="os-win-max" data-win="win-portfolio"></button>
+          </div>
+          <div class="os-window-title">Portfolio Compiler</div>
+        </div>
+        <div class="os-window-content" id="portfolio-content" style="padding: 0; display: flex; flex-direction: column; background: #e5e7eb;">
+        </div>
+      </div>
+
+    <!-- The Dock / Taskbar -->
+    <div class="os-dock" id="os-dock" hidden>
+      <button class="dock-item" data-app="win-sat" title="Growth SAT">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📝</div>
+      </button>
+      <div class="dock-separator"></div>
+      <button class="dock-item" data-app="win-academy" title="PM Academy">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #a855f7, #7e22ce);">🎓</div>
+      </button>
+      <button class="dock-item" data-app="win-prd" title="PRD Builder">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📝</div>
+      </button>
+      <button class="dock-item" data-app="win-interview" title="Mock Interview">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #f43f5e, #be123c);">🎙️</div>
+      </button>
+      <div class="dock-separator"></div>
+      <button class="dock-item" data-app="win-chat" title="NovaChat">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #7aa2f7, #3b5cb8);">💬</div>
+      </button>
+      <button class="dock-item" data-app="win-mail" title="Mail">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #f0a53c, #c97f1a);">📧</div>
+      </button>
+      <button class="dock-item" data-app="win-data" title="Amplitude">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #3fd0b6, #1c9e87);">📊</div>
+      </button>
+      <button class="dock-item" data-app="win-sheets" title="NovaSheets">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #10b981, #047857);">📗</div>
+      </button>
+      <button class="dock-item" data-app="win-sql" title="NovaData SQL">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #0ea5e9, #0369a1);">🗄️</div>
+      </button>
+      <button class="dock-item" data-app="win-sprint" title="Sprint Board">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📋</div>
+      </button>
+      <div class="dock-separator"></div>
+      <button class="dock-item" data-app="win-decide" title="Decision Center">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #e26d6d, #b33939);">🎯</div>
+      </button>
+      <div class="dock-separator"></div>
+      <button class="dock-item" data-app="win-portfolio" title="Portfolio">
+        <div class="dock-icon" style="background: linear-gradient(135deg, #8b5cf6, #4c1d95);">📁</div>
+      </button>
+    </div>
+
+  </div>
+
+
+  <script src="content_foundations.js"></script>
+  <script src="content_discovery_analytics.js"></script>
+  <script src="content_eng_finance_leadership.js"></script>
+  <script src="content_strategy_growth.js"></script>
+  <script src="content_casestudies.js"></script>
+  <script src="prd_engine.js"></script>
+  <script src="interview_engine.js"></script>
+  <script src="sheets_engine.js"></script>
+  <script src="sql_engine.js"></script>
+  <script src="sat_engine.js"></script>
+  <script src="sprint_engine.js"></script>
+  <script src="portfolio_engine.js"></script>
+  <script src="courses.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
