@@ -7,5 +7,10 @@ export default defineConfig({
   server: {
     port: 3118,
     strictPort: true,
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Resource-Policy': 'cross-origin'
+    }
   },
 })
