@@ -133,6 +133,31 @@ const CASE_DECISIONS = {
       ['Harlow & Price renewal', 'Lost', 'churned at signature'],
     ],
     narrative: `**Eight weeks later.** The swap shipped in four days and the announcement went out. Ten days later a maritime associate found another fabricated citation — differently worded, same disease, because retrieval still returned nothing in the unindexed practice areas. Having been told it was fixed, the partner treated the second incident as a broken promise rather than a bug. **Harlow & Price signed with Casewright** — not because the competitor was better, but because you'd spent your credibility on a fix you couldn't measure. Priya's eval suite, built afterward in the postmortem, showed the new model actually fabricated *slightly more* in low-retrieval conditions.`,
+    followUp: {
+      body: `Alex — bad news.
+      
+We swapped the model on Tuesday and announced it to Harlow & Price. It took exactly three days for Elena to email Tom. The new model's safety guardrails are so aggressive it's refusing to summarize perfectly normal contracts, citing "legal advice restrictions." It's paralyzing their workflow. 
+
+Tom is panicking. He wants to roll back to the old model immediately to save their speed. Priya says we can try to prompt-engineer the guardrails away, but it'll take a week of trial and error.
+
+Do we roll back to save their speed, or push through the prompt engineering?
+
+— Marcus`,
+      options: {
+        rollback: {
+          title: 'Roll back to the old model immediately',
+          pitch: 'Restore their drafting speed today. The old model was fast, and they loved the speed.',
+          xpBonus: -15,
+          note: 'You rolled back. The speed returned, but so did the fabrications in the unindexed practice areas. Harlow & Price eventually churned because you flip-flopped on the fix and broke trust entirely.',
+        },
+        prompt: {
+          title: 'Keep the new model, prompt-engineer the safety rails',
+          pitch: 'Spend a week trying to jailbreak our own model to get the completion rate back up.',
+          xpBonus: 5,
+          note: 'You spent a week prompt-engineering. It slightly improved completion, but the underlying retrieval issue was never addressed. They still got fabrications when it did answer, and the deal was lost.'
+        }
+      }
+    },
     debrief: `**Verdict: you shipped the CEO's narrative, not the diagnosis.** The fabrications were a retrieval problem wearing a model costume — every signal pointed there.
 
 - **RAG failure diagnosis:** fabrications clustered exactly where retrieval hit rate was 12%. When retrieval returns nothing, models improvise; a smarter model improvises more fluently.
@@ -193,6 +218,7 @@ Priya keeps saying it's not the model. Tom needs something for his Friday call. 
 You're the PM. Figure out what's actually true and make the call. But make it inside five weeks.
 
 — Marcus`,
+    replyPrompt: 'Reply to Marcus. Acknowledge the stakes, and set expectations on how you will approach the renewal risk before committing to his model-swap.',
     cta: { type: 'accept', label: "Reply: On it →" },
   },
   {
@@ -261,6 +287,13 @@ Whatever you choose, you own it.
 
 — Marcus`,
     decision: true,
+  },
+  {
+    id: 'm6_followup', stage: 'complication', dynamic: 'followup',
+    from: 'Marcus Webb', role: 'CEO', color: '#f59e0b', avatar: 'MW',
+    subject: 'Wait - the new model is refusing to answer',
+    body: '',
+    delaySec: 2,
   },
   {
     id: 'm6', stage: 'complete', dynamic: 'outcome',

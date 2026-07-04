@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import 'xterm/css/xterm.css';
 import { useTheme } from '../ThemeContext';
+import EvalLab from './EvalLab';
 
 // Singleton promise for WebContainer
 let bootPromise = null;
@@ -38,6 +39,7 @@ export default function NovaIDE() {
   const terminalRef = useRef(null);
   const [booting, setBooting] = useState(true);
   const [webcontainer, setWebcontainer] = useState(null);
+  const [mode, setMode] = useState('workspace'); // 'workspace' | 'evallab'
   
   const [files, setFiles] = useState([]);
   const [activeFile, setActiveFile] = useState(null);
@@ -260,12 +262,18 @@ export default function NovaIDE() {
   return (
     <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', backgroundColor: c.bg, color: c.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
       
-      {/* Top Header / Title Bar (Optional, VS Code style) */}
-      <div style={{ height: '35px', backgroundColor: c.titleBar, borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: c.textDim, userSelect: 'none' }}>
-        pmverse-demo - NovaCode
+      {/* Top Header / Title Bar with mode toggle */}
+      <div style={{ height: '35px', backgroundColor: c.titleBar, borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '12px', color: c.textDim, userSelect: 'none', position: 'relative' }}>
+        <span>pmverse-demo — NovaCode</span>
+        <div style={{ position: 'absolute', right: '10px', display: 'flex', gap: '4px' }}>
+          {[['workspace', 'Workspace'], ['evallab', '⚗️ Eval Lab']].map(([m, label]) => (
+            <button key={m} onClick={() => setMode(m)} style={{ border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '5px', backgroundColor: mode === m ? c.accent || '#8957e5' : 'transparent', color: mode === m ? '#fff' : c.textDim, fontFamily: 'inherit' }}>{label}</button>
+          ))}
+        </div>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+      {mode === 'evallab' && <EvalLab />}
+      <div style={{ flex: 1, display: mode === 'evallab' ? 'none' : 'flex', minHeight: 0, overflow: 'hidden' }}>
         
         {/* Activity Bar */}
         <div style={{ width: '48px', flexShrink: 0, backgroundColor: c.activityBar, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', gap: '20px', borderRight: `1px solid ${c.border}`, zIndex: 10 }}>

@@ -6,8 +6,51 @@ import { useCase } from '../case/CaseContext';
 export default function NovaSheets() {
   const ref = useRef(null);
   const { recordEvidence } = useCase();
+  const [missionResult, setMissionResult] = React.useState(null);
 
   const containerRef = useRef(null);
+
+  // Read a cell's numeric value from the active sheet, trying several
+  // fortune-sheet access paths (API varies by version).
+  const readCell = (row, col) => {
+    const wb = ref.current;
+    if (!wb) return null;
+    try {
+      if (typeof wb.getCellValue === 'function') {
+        const v = wb.getCellValue(row, col);
+        if (v !== undefined && v !== null && v !== '') return Number(v);
+      }
+    } catch (e) { /* try next strategy */ }
+    try {
+      const sheets = typeof wb.getAllSheets === 'function' ? wb.getAllSheets() : null;
+      const sheet = sheets && sheets[0];
+      if (sheet?.data?.[row]?.[col]) return Number(sheet.data[row][col].v);
+      if (sheet?.celldata) {
+        const cell = sheet.celldata.find((x) => x.r === row && x.c === col);
+        if (cell) return Number(cell.v?.v ?? cell.v?.m);
+      }
+    } catch (e) { /* fall through */ }
+    return null;
+  };
+
+  const checkModel = () => {
+    // B9 = retention-if-fixed (r8,c1); B14 = revenue at stake (r13,c1)
+    const b9 = readCell(8, 1);
+    const b14 = readCell(13, 1);
+    if (b9 === null || Number.isNaN(b9)) {
+      setMissionResult({ tone: 'info', msg: "Couldn't read the model automatically. Manually: at 30% recovery, revenue-if-fixed = 5200 × 0.30 × 42 × 1.8 = $117,936, so at-stake = $31,450 — still above $30K. The fix clears the bar." });
+      return;
+    }
+    if (Math.abs(b9 - 0.30) > 0.005) {
+      setMissionResult({ tone: 'warn', msg: `Retention-if-fixed (B9) is still ${(b9 * 100).toFixed(0)}%. Set it to 30% (0.30) to model the conservative case, then check again.` });
+      return;
+    }
+    if (b14 !== null && b14 > 30000) {
+      setMissionResult({ tone: 'good', msg: `✓ Correct. At 30% recovery, revenue-at-stake recomputes to $${Math.round(b14).toLocaleString()}/month — still above the $30K bar, so the fix is justified even on conservative assumptions.` });
+    } else {
+      setMissionResult({ tone: 'good', msg: `You updated B9 to 30%. The model recomputes at-stake to ~$31,450/month — above $30K, so the fix holds up even conservatively.` });
+    }
+  };
 
   // Opening the workbook counts as reviewing Sara's impact model
   useEffect(() => { recordEvidence('sheets'); }, []); // empty deps to avoid infinite loop
@@ -118,9 +161,25 @@ export default function NovaSheets() {
     ]
   }];
 
+  const toneColor = { good: '#16a34a', warn: '#d97706', info: '#6b7280' };
   return (
     <div ref={containerRef} style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
-      <Workbook ref={ref} data={initialData} />
+      {/* Modeling mission */}
+      <div style={{ padding: '9px 16px', backgroundColor: '#faf9ff', borderBottom: '1px solid #e5e7eb', fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', color: '#1f2937' }}>
+        <span style={{ fontWeight: 700, color: '#8957e5', whiteSpace: 'nowrap' }}>◆ MODEL IT</span>
+        <span style={{ color: '#4b5563' }}>
+          Leadership is nervous the fix won't fully recover retention. Change <b>retention-if-fixed (cell B9)</b> to <b>30%</b> and check whether $30K/month is still at stake.
+        </span>
+        <button onClick={checkModel} style={{ marginLeft: 'auto', padding: '7px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #8957e5, #d946ef)', color: '#fff', fontWeight: 700, fontSize: '12px', whiteSpace: 'nowrap' }}>
+          ✓ Check model
+        </button>
+        {missionResult && (
+          <div style={{ flexBasis: '100%', marginTop: '2px', color: toneColor[missionResult.tone], fontWeight: 500 }}>{missionResult.msg}</div>
+        )}
+      </div>
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <Workbook ref={ref} data={initialData} />
+      </div>
     </div>
   );
 }

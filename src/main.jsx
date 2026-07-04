@@ -8,7 +8,5 @@ import { loader } from '@monaco-editor/react'
 loader.config({ monaco })
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <App />
 )

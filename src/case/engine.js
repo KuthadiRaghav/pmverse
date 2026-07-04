@@ -27,6 +27,8 @@ export function initialState(caseDef) {
     chats: Object.fromEntries([...Object.keys(caseDef.personas), 'interviewer'].map((id) => [id, []])),
     readIds: [],
     readChats: [],
+    replies: {},
+    channelPosts: {},
     // Wall-clock timestamps per stage entry — drives real-time message drip
     stageAt: { arrival: Date.now() },
   };
@@ -152,6 +154,28 @@ export function gradeMemo(caseDef, state) {
 }
 
 // ---------------------------------------------------------------------------
+// Reply grading — a case-independent communication rubric. Teaches the PM
+// craft of the professional email: acknowledge, commit, be concrete, be brief.
+// ---------------------------------------------------------------------------
+export function gradeReply(text) {
+  const raw = (text || '').trim();
+  if (!raw) return null;
+  const words = raw.split(/\s+/).length;
+  const lower = raw.toLowerCase();
+  const checks = [
+    { ok: /\b(thanks|thank you|understood|got it|appreciate|noted|clear)\b/i.test(raw), label: 'Acknowledges the sender' },
+    { ok: /\b(i'?ll|i will|plan to|next|first|start|by (end of|eod|friday|monday|tomorrow|the)|within|timeline|update you|report back)\b/i.test(lower), label: 'Commits to a concrete next step or timeline' },
+    { ok: /\b(data|interview|dev|sara|maya|priya|kayla|raj|tom|elena|diane|marisol|marcus|checkout|retrieval|inventory|root cause|evidence|investigate|diagnos)\w*/i.test(lower), label: 'References something specific to the situation' },
+    { ok: words >= 18 && words <= 130, label: 'Right length — substantive but not a wall of text' },
+    { ok: !/[A-Z]{6,}/.test(raw) && !/!!!/.test(raw), label: 'Professional tone (no shouting)' },
+  ];
+  const points = checks.filter((c) => c.ok).length;
+  const max = checks.length;
+  const grade = points >= 5 ? 'A' : points >= 4 ? 'B' : points >= 3 ? 'C' : 'D';
+  return { grade, points, max, checks };
+}
+
+// ---------------------------------------------------------------------------
 // Artifact generation — derived from state, no separate storage needed
 // ---------------------------------------------------------------------------
 export function caseReport(caseDef, state) {
@@ -187,6 +211,14 @@ export function caseReport(caseDef, state) {
       lines.push('', `**Coach grade: ${memoGrade.grade}** (${memoGrade.points}/${memoGrade.max} rubric points)`);
     }
   }
+  const replies = Object.entries(state.replies || {});
+  if (replies.length) {
+    lines.push('', '## Stakeholder replies');
+    for (const [mid, text] of replies) {
+      const g = gradeReply(text);
+      lines.push('', `> ${text}`, `*Communication grade: ${g.grade} (${g.points}/${g.max})*`);
+    }
+  }
   lines.push(
     '', '## Performance',
     ...XP_DIMS.map((k) => `- ${k}: ${xp[k]} XP`),
@@ -199,6 +231,75 @@ export function caseReport(caseDef, state) {
     filename: `case-${caseDef.meta.number}-report.md`,
     markdown: lines.join('\n'),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Achievement badges — derived from play history across all cases + academy.
+// ---------------------------------------------------------------------------
+export function computeBadges(caseList, states, academy = {}) {
+  const decided = caseList.filter((c) => states[c.meta.id]?.decision);
+  const bestCalls = decided.filter((c) => caseList.find((x) => x.meta.id === c.meta.id) && states[c.meta.id].decision === c.leadership.best);
+  const fullSweeps = decided.filter((c) => evidenceCoverage(c, states[c.meta.id]) >= 0.85);
+  const memoA = decided.filter((c) => { const g = gradeMemo(c, states[c.meta.id]); return g && g.grade === 'A'; });
+  const hippoWins = decided.filter((c) => states[c.meta.id].decision === c.leadership.best && interviewedIds(c, states[c.meta.id]).includes(c.leadership.hippo));
+  const anyReply = caseList.some((c) => Object.keys(states[c.meta.id]?.replies || {}).length);
+  const sprintA = Object.values(academy.sprints || {}).some((s) => s.grade === 'A');
+
+  const defs = [
+    { id: 'first-case', icon: '🎬', name: 'First Case Closed', desc: 'Complete your first case', earned: decided.length >= 1 },
+    { id: 'root-cause', icon: '🔍', name: 'Root-Cause Finder', desc: 'Pick the best call on a case', earned: bestCalls.length >= 1 },
+    { id: 'hippo', icon: '🦛', name: 'Resisted the HiPPO', desc: 'Beat the CEO\'s pet idea with evidence', earned: hippoWins.length >= 1 },
+    { id: 'thorough', icon: '🧭', name: 'Did the Work', desc: 'Gather 85%+ of the evidence before deciding', earned: fullSweeps.length >= 1 },
+    { id: 'writer', icon: '✍️', name: 'Clear Communicator', desc: 'Earn an A on a decision memo', earned: memoA.length >= 1 },
+    { id: 'replied', icon: '📮', name: 'Inbox Zero Hero', desc: 'Reply to a stakeholder email', earned: anyReply },
+    { id: 'analyst', icon: '📊', name: 'Data-Driven', desc: 'Complete a Design Sprint with an A', earned: sprintA },
+    { id: 'streak-3', icon: '🔥', name: 'On a Roll', desc: 'Reach a 3-day streak', earned: (academy.streak || 0) >= 3 },
+    { id: 'trilogy', icon: '🏆', name: 'The Trilogy', desc: 'Complete all three cases', earned: decided.length >= 3 },
+    { id: 'flawless', icon: '💎', name: 'Flawless Run', desc: 'Best call + full evidence + A memo on one case', earned: decided.some((c) => { const s = states[c.meta.id]; const g = gradeMemo(c, s); return s.decision === c.leadership.best && evidenceCoverage(c, s) >= 0.85 && g && g.grade === 'A'; }) },
+  ];
+  return defs;
+}
+
+// ---------------------------------------------------------------------------
+// Global Company Health — derived from decisions across all cases
+// ---------------------------------------------------------------------------
+export function computeCompanyHealth(caseList, states) {
+  let history = [{ week: 0, dau: 100000, nps: 45, mrr: 500000, label: 'Start' }];
+  let current = { dau: 100000, nps: 45, mrr: 500000 };
+  let week = 0;
+
+  for (const c of caseList) {
+    const s = states[c.meta.id];
+    if (s && s.decision) {
+      week += 8; // Each case represents an 8-week cycle
+      const d = c.decisions[s.decision];
+      const quality = d.quality; // 0 to 100
+      let followUpBonus = 0;
+      if (d.followUp && s.followUpChoice) {
+        followUpBonus = d.followUp.options[s.followUpChoice]?.xpBonus || 0;
+      }
+      const totalQuality = quality + followUpBonus;
+      
+      const dauDelta = (totalQuality - 60) * 1500;
+      const npsDelta = (totalQuality - 60) / 4;
+      const mrrDelta = (totalQuality - 60) * 6000;
+
+      current = {
+        dau: Math.round(Math.max(0, current.dau + dauDelta)),
+        nps: Math.round(Math.max(-100, Math.min(100, current.nps + npsDelta))),
+        mrr: Math.round(Math.max(0, current.mrr + mrrDelta)),
+      };
+
+      history.push({ 
+        week, 
+        dau: current.dau, 
+        nps: current.nps, 
+        mrr: current.mrr, 
+        label: `Case ${c.meta.number}: ${d.title.substring(0, 25)}...` 
+      });
+    }
+  }
+  return { current, history };
 }
 
 // ---------------------------------------------------------------------------

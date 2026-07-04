@@ -206,6 +206,7 @@ The board meets in **three weeks**. My recommendation, as of this morning, is to
 You own this product. Investigate however you need — Raj, Kayla, the floor, the data. Then bring me your recommendation and be prepared to own it.
 
 — Diane`,
+    replyPrompt: 'Reply to Diane. Acknowledge the severity, signal ownership, and outline how you will investigate before recommending shutdown or otherwise.',
     cta: { type: 'accept', label: "Reply: I'll own it →" },
   },
   {

@@ -3,9 +3,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useCase } from '../case/CaseContext';
 import { useTokens } from '../theme';
-import { hasApiKey, coachDebrief } from '../ai';
+import { hasApiKey, hasWindowAi, coachDebrief } from '../ai';
 import {
-  XP_DIMS, computeXP, xpTotal, xpMax, rankFor, evidenceAudit, gradeMemo, processNote,
+  XP_DIMS, computeXP, xpTotal, xpMax, rankFor, evidenceAudit, gradeMemo, processNote, gradeReply,
 } from '../case/engine';
 
 // NovaMail: the case delivery system. Story beats arrive as emails; decisions
@@ -17,11 +17,12 @@ export default function NovaMail() {
     caseDef, caseId, caseList, states,
     state, visibleMessages, totalXP, rank,
     switchCase, acceptCase, decide, chooseFollowUp, markRead, resetCase, openApp, setMemo, setAiCoach,
-    unlockedCaseIds,
+    unlockedCaseIds, saveReply,
   } = useCase();
   const [selectedId, setSelectedId] = useState(visibleMessages[0]?.id || null);
   const [pendingDecision, setPendingDecision] = useState(null);
   const [coachLoading, setCoachLoading] = useState(false);
+  const [draftReply, setDraftReply] = useState('');
 
   // Reset selection when switching cases
   useEffect(() => {
@@ -35,7 +36,61 @@ export default function NovaMail() {
     if (selected) markRead(selected.id);
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const openMessage = (m) => { setSelectedId(m.id); markRead(m.id); };
+  const openMessage = (m) => { setSelectedId(m.id); markRead(m.id); setDraftReply(''); };
+
+  // Compose-and-grade a reply to a stakeholder email
+  const renderReplyBox = (m) => {
+    const saved = state.replies?.[m.id];
+    if (saved) {
+      const g = gradeReply(saved);
+      return (
+        <div style={{ marginTop: '18px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '10px', padding: '16px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.dim, marginBottom: '8px' }}>Your reply · Coach review</div>
+          <div style={{ fontSize: '13.5px', lineHeight: 1.6, color: c.text, fontStyle: 'italic', marginBottom: '12px', whiteSpace: 'pre-wrap' }}>“{saved}”</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <span style={{ fontSize: '26px', fontWeight: 800, color: g.grade <= 'B' ? c.good : c.warn }}>{g.grade}</span>
+            <span style={{ fontSize: '12px', color: c.dim }}>{g.points}/{g.max} communication points</span>
+          </div>
+          {g.checks.map((ck) => (
+            <div key={ck.label} style={{ fontSize: '12.5px', color: ck.ok ? c.good : c.bad, padding: '1px 0' }}>{ck.ok ? '✓' : '✕'} {ck.label}</div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div style={{ marginTop: '18px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '10px', padding: '14px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.accent, marginBottom: '8px' }}>✍️ Reply to {m.from.split(' ')[0]}</div>
+        <div style={{ fontSize: '12.5px', color: c.dim, marginBottom: '10px' }}>{m.replyPrompt}</div>
+        <textarea
+          value={draftReply}
+          onChange={(e) => setDraftReply(e.target.value)}
+          placeholder="Write a professional reply — acknowledge, commit to a next step, keep it tight."
+          style={{ width: '100%', minHeight: '90px', resize: 'vertical', boxSizing: 'border-box', backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '10px 12px', fontSize: '13.5px', lineHeight: 1.5, fontFamily: 'inherit', outline: 'none' }}
+        />
+        <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+          <button
+            disabled={draftReply.trim().split(/\s+/).length < 4}
+            onClick={() => {
+              saveReply(m.id, draftReply.trim());
+              const isAccept = m.cta?.type === 'accept' || m.cta?.type === 'accept-and-open';
+              if (isAccept && state.stage === 'arrival') {
+                acceptCase();
+                if (m.cta.type === 'accept-and-open') openApp(m.cta.app);
+              }
+            }}
+            style={{ ...btnStyle(c, 'primary'), marginTop: 0, opacity: draftReply.trim().split(/\s+/).length < 4 ? 0.4 : 1 }}
+          >
+            Send reply
+          </button>
+          {(m.cta?.type === 'accept' || m.cta?.type === 'accept-and-open') && state.stage === 'arrival' && (
+            <button onClick={() => { acceptCase(); if (m.cta.type === 'accept-and-open') openApp(m.cta.app); }} style={{ background: 'none', border: 'none', color: c.dim, fontSize: '13px', cursor: 'pointer' }}>
+              Skip — {m.cta.type === 'accept-and-open' ? 'just open it' : 'just accept'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // ----- dynamic message bodies -----
   const renderOutcome = () => {
@@ -145,14 +200,14 @@ export default function NovaMail() {
           )}
         </div>
 
-        {/* Personalized AI coaching (BYO API key) */}
+        {/* Personalized AI coaching */}
         <div style={{ marginTop: '16px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '8px', padding: '16px' }}>
           <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.accent, marginBottom: '10px' }}>
             Coach's personal note
           </div>
           {state.aiCoach ? (
             <div style={{ fontSize: '13.5px', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{state.aiCoach}</div>
-          ) : hasApiKey() ? (
+          ) : (hasApiKey() || hasWindowAi()) ? (
             <button
               disabled={coachLoading}
               onClick={async () => {
@@ -176,11 +231,11 @@ export default function NovaMail() {
               }}
               style={{ ...btnStyle(c, 'primary'), marginTop: 0, opacity: coachLoading ? 0.5 : 1 }}
             >
-              {coachLoading ? 'Thinking…' : '✨ Get personalized coaching (Claude)'}
+              {coachLoading ? 'Thinking…' : `✨ Get personalized coaching (${hasApiKey() ? 'Claude' : 'Chrome AI'})`}
             </button>
           ) : (
             <div style={{ fontSize: '13px', color: c.dim }}>
-              Add an Anthropic API key in the <b>Career</b> app to get a personalized coaching note on your playthrough (and live stakeholder conversations).
+              Add an Anthropic API key in the <b>Career</b> app (or use Chrome's built-in AI) to get a personalized coaching note on your playthrough.
             </div>
           )}
         </div>
@@ -376,11 +431,15 @@ export default function NovaMail() {
 
             {selected.decision && renderDecisionBlock()}
 
-            {selected.cta?.type === 'accept' && state.stage === 'arrival' && (
+            {selected.replyPrompt && renderReplyBox(selected)}
+            {selected.cta?.type === 'accept' && state.stage === 'arrival' && !selected.replyPrompt && (
               <button onClick={acceptCase} style={btnStyle(c, 'primary')}>{selected.cta.label}</button>
             )}
-            {selected.cta?.type === 'accept' && state.stage !== 'arrival' && (
-              <div style={{ marginTop: '16px', fontSize: '13px', color: c.good }}>✓ You replied. New messages have arrived.</div>
+            {(selected.cta?.type === 'accept' || selected.cta?.type === 'accept-and-open') && state.stage !== 'arrival' && !selected.replyPrompt && (
+              <div style={{ marginTop: '16px', fontSize: '13px', color: c.good }}>✓ You accepted the case.</div>
+            )}
+            {selected.cta?.type === 'accept-and-open' && state.stage === 'arrival' && (
+              <button onClick={() => { acceptCase(); openApp(selected.cta.app); }} style={btnStyle(c, 'primary')}>{selected.cta.label}</button>
             )}
             {selected.cta?.type === 'open-app' && (
               <button onClick={() => openApp(selected.cta.app)} style={btnStyle(c, 'primary')}>{selected.cta.label}</button>

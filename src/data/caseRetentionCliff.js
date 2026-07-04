@@ -237,12 +237,12 @@ Welcome aboard — I wish it were under calmer skies.
 
 Everyone here has a theory. Mine: customers have no reason to come back, and a **loyalty program** would fix that — it printed retention at my last company. But you're the product manager now, not me.
 
-You have **four engineers** and one bet. Figure out what's really happening, pick the intervention, and be ready to defend it to the board.
+I've granted you access to the **NovaCart Retention** folder on the **Company Drive**. Please start there: read the company brief to understand our business, and review the board notes to understand what we're up against.
 
-Sara has data ready for you, Dev knows what engineering can do, and we've scheduled a customer interview. Don't take too long.
+After you've done your reading, you have **four engineers** and one bet. Figure out what's really happening, pick the intervention, and be ready to defend it to the board. 
 
 — Maya`,
-    cta: { type: 'accept', label: "Reply: I'm on it →" },
+    cta: { type: 'accept-and-open', app: 'win-drive', label: "Open Company Drive →" },
   },
   {
     id: 'm2', stage: 'investigate',
@@ -312,6 +312,7 @@ Not to hover, but every day of this churn costs us real money and I just got off
 Where are you on the diagnosis? If you haven't yet: Sara's data is loaded, Dev is around, and the customer interview is waiting. The board deck won't write itself.
 
 — M`,
+    replyPrompt: 'Send Maya a status update. Great PM updates are short: what you\'ve found so far, what you\'re doing next, and when she\'ll get the recommendation.',
     cta: { type: 'open-app', app: 'win-decide', label: 'Open Decision Center →' },
   },
   {
@@ -370,6 +371,7 @@ const CASE_MEMO_RUBRIC = [
 const CASE_METRICS = [
   {
     id: 'retention', label: 'Week-4 retention', unit: '%', goodDirection: 'up',
+    annotations: [{ week: -8, label: 'v2.4 shipped' }],
     history: [
       { week: -10, value: 38 }, { week: -9, value: 37 }, { week: -8, value: 24 },
       { week: -7, value: 23 }, { week: -6, value: 22 }, { week: -5, value: 23 },
@@ -384,6 +386,7 @@ const CASE_METRICS = [
   },
   {
     id: 'latency', label: 'Mobile checkout p75', unit: 's', goodDirection: 'down',
+    annotations: [{ week: -8, label: 'v2.4 shipped' }],
     history: [
       { week: -10, value: 2.4 }, { week: -9, value: 2.5 }, { week: -8, value: 8.7 },
       { week: -7, value: 9.1 }, { week: -6, value: 9.0 }, { week: -5, value: 9.2 },
@@ -418,6 +421,52 @@ const CASE_CHATS = [
   }
 ];
 
+// ---------------------------------------------------------------------------
+// Case Files (Company Drive)
+// ---------------------------------------------------------------------------
+const CASE_FILES = [
+  {
+    id: 'company_brief',
+    name: 'Company_Brief.md',
+    type: 'markdown',
+    content: `# NovaCart: Company Brief
+    
+**Mission**: Sustainable home goods for the modern apartment.
+**Status**: Series A ($12M raised).
+**Headcount**: 40 employees (4 engineers).
+
+## Core Business Model
+NovaCart operates as a direct-to-consumer (D2C) marketplace for sustainable, bamboo-based, and recycled home goods (kitchenware, bathroom essentials, small decor). Our primary growth engine over the last year has been performance marketing (Instagram/TikTok ads) targeting millennials in urban apartments.
+
+## Product Ecosystem
+We have two main platforms:
+1. **Desktop Web**: Accounts for ~30% of traffic, mostly used for initial discovery and large basket purchases.
+2. **Mobile App**: Accounts for ~70% of traffic. Mobile is the core of our business and drives our repeat purchase behavior.
+
+## Current Strategic Goal
+To secure a Series B round in the next 6 months, we must prove that our customer acquisition cost (CAC) is offset by a strong lifetime value (LTV). Currently, our Week-4 retention is the biggest risk to that narrative.`
+  },
+  {
+    id: 'board_meeting_notes',
+    name: 'Q3_Board_Prep_Notes.md',
+    type: 'markdown',
+    content: `# Board Prep: The Retention Problem
+
+**Date**: Last Tuesday
+**Attendees**: Maya Chen (CEO), Board Members (Sequoia, Benchmark reps)
+
+## Summary of Panic
+- Revenue is down 18% QoQ.
+- Two major investors called Maya privately to express concern over the "leaky bucket."
+- The board meets in exactly 6 weeks. If the retention curve isn't fixed (or at least definitively diagnosed and on a recovery path), the Series B is completely off the table.
+
+## The CEO's Directive
+Maya believes the product is too transactional. She is heavily pushing for **NovaCart Rewards**, a points-based loyalty program. She implemented this at her previous company and saw a 20% lift in repeat purchases. 
+
+**Note from Maya to Product**: "I need a decision ASAP. Do we build the loyalty program, or do you have a better idea? If you have a better idea, you need to prove it to me."`
+  }
+];
+
 export const CASE_RETENTION_CLIFF = {
   meta: CASE_META,
   personas: CASE_PERSONAS,
@@ -430,4 +479,5 @@ export const CASE_RETENTION_CLIFF = {
   leadership: CASE_LEADERSHIP,
   memoRubric: CASE_MEMO_RUBRIC,
   metrics: CASE_METRICS,
+  files: CASE_FILES,
 };

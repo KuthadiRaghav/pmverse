@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
 import { INTERVIEWER } from '../case/engine';
-import { hasApiKey, claudeComplete } from '../ai';
+import { hasApiKey, claudeComplete, hasWindowAi, windowAiComplete } from '../ai';
 import { CreateMLCEngine } from '@mlc-ai/web-llm';
 
 // Decision Center: talk to the case's stakeholders. Uses an in-browser LLM
@@ -32,7 +32,7 @@ export default function DecisionCenter() {
   const [isLoadingModel, setIsLoadingModel] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('');
-  const [mode, setMode] = useState(engineInstance ? 'webgpu' : engineFailed ? 'scripted' : 'standby');
+  const [mode, setMode] = useState(hasWindowAi() ? 'window-ai' : engineInstance ? 'webgpu' : engineFailed ? 'scripted' : 'standby');
   const [streaming, setStreaming] = useState(null); // in-flight assistant text
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -136,6 +136,25 @@ export default function DecisionCenter() {
       }
     }
 
+    // Tier 2: Chrome's built-in window.ai
+    if (hasWindowAi()) {
+      try {
+        const text = await windowAiComplete({
+          system: p.system,
+          messages: [
+            ...priorHistory.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+            { role: 'user', content: userText },
+          ],
+        });
+        addChatMessage(personaId, { role: 'assistant', content: text || '…' });
+        setIsGenerating(false);
+        return;
+      } catch (err) {
+        console.warn('window.ai call failed, falling back to WebLLM/script:', err.message);
+      }
+    }
+
+    // Tier 3: WebLLM (In-Browser GPU model download)
     if (!engineInstance && !engineFailed) {
       await initEngine();
     }
@@ -187,8 +206,8 @@ export default function DecisionCenter() {
       {/* Header */}
       <div style={{ padding: '12px 16px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontWeight: 'bold' }}>Decision Center · Stakeholders</div>
-        <div style={{ fontSize: '12px', color: hasApiKey() ? '#2ea043' : mode === 'webgpu' ? '#2ea043' : c.dim }}>
-          {hasApiKey() ? '● Claude (API key)' : mode === 'webgpu' ? '● WebGPU Active' : mode === 'scripted' ? '◦ Scripted mode' : '○ WebGPU Standby'}
+        <div style={{ fontSize: '12px', color: hasApiKey() ? '#2ea043' : mode === 'window-ai' || mode === 'webgpu' ? '#2ea043' : c.dim }}>
+          {hasApiKey() ? '● Claude (API key)' : mode === 'window-ai' ? '● Local Chrome AI' : mode === 'webgpu' ? '● WebGPU Active' : mode === 'scripted' ? '◦ Scripted mode' : '○ WebGPU Standby'}
         </div>
       </div>
 

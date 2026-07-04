@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Window from './Window';
 import SqlConsole from './SqlConsole';
 import NovaSheets from './NovaSheets';
@@ -14,7 +14,8 @@ import NovaMetrics from './NovaMetrics';
 import Artifacts from './Artifacts';
 import CareerProfile from './CareerProfile';
 import PromptLab from './PromptLab';
-import HomeSurface from './HomeSurface';
+
+import FileExplorer from './FileExplorer';
 import Welcome, { ONBOARD_KEY } from './Welcome';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
@@ -23,26 +24,26 @@ import {
   Search, Bell, Moon, Sun, Trophy, Flame, 
   Mail, MessageSquare, BarChart2, Folder, User, FlaskConical, 
   PenTool, GraduationCap, Table, Layout, MessageCircle, Database, Map, 
-  Terminal as TerminalIcon, FileText, Trash2
+  Terminal as TerminalIcon, FileText, Trash2, HardDrive
 } from 'lucide-react';
 import { getStreak } from '../academyProgress';
 import { playPop, playSwoosh, playChime } from '../soundEngine';
 
 export const APPS = [
-  { id: 'win-mail', title: 'NovaMail', icon: '📥', color: 'linear-gradient(135deg, #8b5cf6, #d946ef)', implemented: true },
-  { id: 'win-chat', title: 'NovaChat', icon: '💬', color: 'linear-gradient(135deg, #ec4899, #be185d)', implemented: true },
-  { id: 'win-metrics', title: 'NovaMetrics', icon: '📈', color: 'linear-gradient(135deg, #0ea5e9, #0369a1)', implemented: true },
-  { id: 'win-artifacts', title: 'Portfolio', icon: '📁', color: 'linear-gradient(135deg, #a855f7, #7e22ce)', implemented: true },
-  { id: 'win-career', title: 'Career', icon: '👤', color: 'linear-gradient(135deg, #f97316, #c2410c)', implemented: true },
-  { id: 'win-promptlab', title: 'PromptLab', icon: '⚗️', color: 'linear-gradient(135deg, #84cc16, #4d7c0f)', implemented: true },
-  { id: 'win-sat', title: 'Growth SAT', icon: '📝', color: 'linear-gradient(135deg, #f59e0b, #d97706)', implemented: false },
-  { id: 'win-academy', title: 'PM Academy', icon: '🎓', color: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', implemented: true },
-  { id: 'win-sheets', title: 'NovaSheets', icon: '📊', color: 'linear-gradient(135deg, #10b981, #059669)', implemented: true },
-  { id: 'win-sprint', title: 'Sprint Board', icon: '📋', color: 'linear-gradient(135deg, #3b82f6, #2563eb)', implemented: true },
-  { id: 'win-decide', title: 'Decision Center', icon: '💬', color: 'linear-gradient(135deg, #ef4444, #dc2626)', implemented: true },
-  { id: 'win-sql', title: 'NovaData SQL', icon: '🗄️', color: 'linear-gradient(135deg, #14b8a6, #0d9488)', implemented: true },
-  { id: 'win-portfolio', title: 'Portfolio Map', icon: '🗺️', color: 'linear-gradient(135deg, #6366f1, #4f46e5)', implemented: false },
-  { id: 'win-ide', title: 'NovaCode IDE', icon: '</>', color: 'linear-gradient(135deg, #1f2937, #111827)', implemented: true, isTerminal: true }
+  { id: 'win-mail', title: 'NovaMail', Component: NovaMail, defaultSize: { w: 800, h: 600 } },
+  { id: 'win-chat', title: 'NovaChat', Component: NovaChat, defaultSize: { w: 400, h: 600 } },
+  { id: 'win-metrics', title: 'NovaMetrics', Component: NovaMetrics, defaultSize: { w: 900, h: 600 } },
+  { id: 'win-artifacts', title: 'Portfolio', Component: Artifacts, defaultSize: { w: 750, h: 550 } },
+  { id: 'win-career', title: 'Career', Component: CareerProfile, defaultSize: { w: 400, h: 600 } },
+  { id: 'win-promptlab', title: 'PromptLab', Component: PromptLab, defaultSize: { w: 850, h: 650 } },
+  { id: 'win-academy', title: 'PM Academy', Component: PMAcademy, defaultSize: { w: 800, h: 600 } },
+  { id: 'win-sheets', title: 'NovaSheets', Component: NovaSheets, defaultSize: { w: 900, h: 600 } },
+  { id: 'win-sprint', title: 'Sprint Board', Component: SprintBoard, defaultSize: { w: 900, h: 600 } },
+  { id: 'win-decide', title: 'Decision Center', Component: DecisionCenter, defaultSize: { w: 600, h: 700 } },
+  { id: 'win-sql', title: 'NovaData SQL', Component: SqlConsole, defaultSize: { w: 850, h: 600 } },
+  { id: 'win-portfolio', title: 'Portfolio Map', Component: PortfolioMap, defaultSize: { w: 900, h: 600 } },
+  { id: 'win-ide', title: 'NovaCode IDE', Component: NovaIDE, defaultSize: { w: 900, h: 600 } },
+  { id: 'win-drive', title: 'Company Drive', Component: FileExplorer, defaultSize: { w: 850, h: 600 } }
 ];
 
 export default function Desktop() {
@@ -97,7 +98,13 @@ export default function Desktop() {
     setMinimizedWindows(prev => prev.filter(w => w !== id));
   };
 
+  const lastToggleTime = useRef(0);
+
   const toggleWindow = (id) => {
+    const now = Date.now();
+    if (now - lastToggleTime.current < 300) return; // Prevent double-click flicker
+    lastToggleTime.current = now;
+
     const isOpen = openWindows.includes(id);
     const isMinimized = minimizedWindows.includes(id);
     const isFocused = openWindows[openWindows.length - 1] === id && !isMinimized;
@@ -364,32 +371,28 @@ export default function Desktop() {
         </div>
       </div>
 
-      <div style={{ position: 'absolute', top: '32px', left: 0, right: 0, bottom: 0 }}>
-        <HomeSurface />
-      </div>
 
       {/* Desktop Icons */}
       {showIcons && (() => {
-        // Define all desktop icons with their Lucide icons
         const icons = [
           // Left Column
-          { id: 'icon-readme', title: 'README.md', imgSrc: '/icons/icon_readme.jpg', type: 'file', side: 'left' },
-          { id: 'icon-mail', title: 'NovaMail', imgSrc: '/icons/icon_mail.jpg', type: 'app', appId: 'win-mail', side: 'left' },
-          { id: 'icon-chat', title: 'NovaChat', imgSrc: '/icons/icon_chat.jpg', type: 'app', appId: 'win-chat', side: 'left' },
-          { id: 'icon-metrics', title: 'NovaMetrics', imgSrc: '/icons/icon_metrics.jpg', type: 'app', appId: 'win-metrics', side: 'left' },
-          { id: 'icon-artifacts', title: 'Portfolio', imgSrc: '/icons/icon_portfolio.jpg', type: 'app', appId: 'win-artifacts', side: 'left' },
-          { id: 'icon-career', title: 'Career', imgSrc: '/icons/icon_career.jpg', type: 'app', appId: 'win-career', side: 'left' },
-          { id: 'icon-promptlab', title: 'PromptLab', imgSrc: '/icons/icon_promptlab.jpg', type: 'app', appId: 'win-promptlab', side: 'left' },
+          { id: 'icon-drive', title: 'Company Drive', icon: <HardDrive size={28} color="#f59e0b" />, type: 'app', appId: 'win-drive', side: 'left' },
+          { id: 'icon-mail', title: 'NovaMail', icon: <Mail size={28} color="#8b5cf6" />, type: 'app', appId: 'win-mail', side: 'left' },
+          { id: 'icon-chat', title: 'NovaChat', icon: <MessageSquare size={28} color="#ec4899" />, type: 'app', appId: 'win-chat', side: 'left' },
+          { id: 'icon-metrics', title: 'NovaMetrics', icon: <BarChart2 size={28} color="#0369a1" />, type: 'app', appId: 'win-metrics', side: 'left' },
+          { id: 'icon-artifacts', title: 'Portfolio', icon: <Folder size={28} color="#a855f7" />, type: 'app', appId: 'win-artifacts', side: 'left' },
+          { id: 'icon-career', title: 'Career', icon: <User size={28} color="#f97316" />, type: 'app', appId: 'win-career', side: 'left' },
+          { id: 'icon-promptlab', title: 'PromptLab', icon: <FlaskConical size={28} color="#84cc16" />, type: 'app', appId: 'win-promptlab', side: 'left' },
           
           // Right Column
-          { id: 'icon-academy', title: 'PM Academy', imgSrc: '/icons/icon_academy.jpg', type: 'app', appId: 'win-academy', side: 'right' },
-          { id: 'icon-sheets', title: 'NovaSheets', imgSrc: '/icons/icon_sheets.jpg', type: 'app', appId: 'win-sheets', side: 'right' },
-          { id: 'icon-sprint', title: 'Sprint Board', imgSrc: '/icons/icon_sprint.jpg', type: 'app', appId: 'win-sprint', side: 'right' },
-          { id: 'icon-decide', title: 'Decision Center', imgSrc: '/icons/icon_decide.jpg', type: 'app', appId: 'win-decide', side: 'right' },
-          { id: 'icon-sql', title: 'NovaData SQL', imgSrc: '/icons/icon_sql.jpg', type: 'app', appId: 'win-sql', side: 'right' },
-          { id: 'icon-portfolio', title: 'Portfolio Map', imgSrc: '/icons/icon_map.jpg', type: 'app', appId: 'win-portfolio', side: 'right' },
-          { id: 'icon-ide', title: 'NovaCode IDE', imgSrc: '/icons/icon_ide.jpg', type: 'app', appId: 'win-ide', side: 'right' },
-          { id: 'icon-trash', title: 'Trash', imgSrc: '/icons/icon_trash.jpg', type: 'trash', side: 'right' }
+          { id: 'icon-academy', title: 'PM Academy', icon: <GraduationCap size={28} color="#6d28d9" />, type: 'app', appId: 'win-academy', side: 'right' },
+          { id: 'icon-sheets', title: 'NovaSheets', icon: <Table size={28} color="#10b981" />, type: 'app', appId: 'win-sheets', side: 'right' },
+          { id: 'icon-sprint', title: 'Sprint Board', icon: <Layout size={28} color="#3b82f6" />, type: 'app', appId: 'win-sprint', side: 'right' },
+          { id: 'icon-decide', title: 'Decision Center', icon: <MessageCircle size={28} color="#ef4444" />, type: 'app', appId: 'win-decide', side: 'right' },
+          { id: 'icon-sql', title: 'NovaData SQL', icon: <Database size={28} color="#14b8a6" />, type: 'app', appId: 'win-sql', side: 'right' },
+          { id: 'icon-portfolio', title: 'Portfolio Map', icon: <Map size={28} color="#6366f1" />, type: 'app', appId: 'win-portfolio', side: 'right' },
+          { id: 'icon-ide', title: 'NovaCode IDE', icon: <TerminalIcon size={28} color="#374151" />, type: 'app', appId: 'win-ide', side: 'right' },
+          { id: 'icon-trash', title: 'Trash', icon: <Trash2 size={28} color="#6b7280" />, type: 'trash', side: 'right' }
         ];
 
         let leftCount = 0;
@@ -437,10 +440,9 @@ export default function Desktop() {
                 border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
                 borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center',
                 boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.05)',
-                backdropFilter: 'blur(10px)',
-                overflow: 'hidden'
+                backdropFilter: 'blur(10px)'
               }}>
-                <img src={icon.imgSrc} alt={icon.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
+                {icon.icon}
                 {/* Notification Badges */}
                 {icon.appId === 'win-mail' && unreadCount > 0 && (
                   <div style={{
@@ -532,13 +534,20 @@ export default function Desktop() {
       </AnimatePresence>
 
       {/* Render Open Windows */}
-      <AnimatePresence mode="popLayout">
       {openWindows.map((winId, index) => {
         const app = APPS.find(a => a.id === winId);
         if (!app) return null;
         
         const zIndex = 10 + index;
         const isFocused = index === openWindows.length - 1;
+
+        if (winId === 'win-drive') {
+          return (
+            <Window key={winId} title={app.title} onClose={() => closeWindow(winId)} onMinimize={() => minimizeWindow(winId)} isMinimized={minimizedWindows.includes(winId)} initialWidth={850} initialHeight={600} x={150} y={150} zIndex={zIndex} isFocused={isFocused} onFocus={() => focusWindow(winId)}>
+              <FileExplorer />
+            </Window>
+          );
+        }
 
         if (winId === 'win-mail') {
           return (
@@ -653,7 +662,6 @@ export default function Desktop() {
 
         return null;
       })}
-      </AnimatePresence>
 
       {/* The Dock has been removed in favor of edge Desktop Icons */}
 

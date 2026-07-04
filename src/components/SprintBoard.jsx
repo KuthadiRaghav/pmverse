@@ -127,6 +127,26 @@ export default function SprintBoard() {
   const { theme } = useTheme();
   const [columns, setColumns] = useState(INITIAL_TASKS);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [missionResult, setMissionResult] = useState(null);
+
+  const CAPACITY = 13;
+
+  const checkSprint = () => {
+    const committed = columns.in_progress;
+    const points = committed.reduce((s, t) => s + t.points, 0);
+    const highPtsInProgress = committed.filter((t) => t.priority === 'High').reduce((s, t) => s + t.points, 0);
+    const allHighPts = Object.values(columns).flat().filter((t) => t.priority === 'High').reduce((s, t) => s + t.points, 0);
+    const withinBudget = points <= CAPACITY;
+    const highCoverage = allHighPts ? highPtsInProgress / allHighPts : 0;
+    const notEmpty = committed.length > 0;
+    let grade, msg;
+    if (!notEmpty) { grade = '—'; msg = 'Nothing committed yet. Drag work into "In Progress".'; }
+    else if (!withinBudget) { grade = 'D'; msg = `Over capacity: ${points}/${CAPACITY} pts committed. Cutting scope is the job — pull something back to To Do.`; }
+    else if (highCoverage >= 0.75) { grade = 'A'; msg = `${points}/${CAPACITY} pts, and you prioritized the high-impact work. That's a shippable sprint.`; }
+    else if (highCoverage >= 0.4) { grade = 'B'; msg = `${points}/${CAPACITY} pts and within budget — but some high-priority work is still sitting in To Do. Is low-priority work crowding it out?`; }
+    else { grade = 'C'; msg = `${points}/${CAPACITY} pts, within budget — but you loaded up on low-priority items while high-priority work waits. Sequence by impact.`; }
+    setMissionResult({ grade, msg, points });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -237,8 +257,25 @@ export default function SprintBoard() {
             Project: The Retention Cliff • Sprint 4 • 6 weeks to Board Meeting
           </div>
         </div>
+        <button onClick={checkSprint} style={{ padding: '9px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #8957e5, #d946ef)', color: '#fff', fontWeight: 700, fontSize: '13px' }}>
+          ✓ Check my sprint
+        </button>
       </div>
-      
+
+      {/* Capacity mission */}
+      <div style={{ padding: '10px 24px', backgroundColor: theme === 'dark' ? '#0d1117' : '#f9fafb', borderBottom: `1px solid ${border}`, fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <span style={{ fontWeight: 700, color: '#8957e5' }}>◆ MISSION</span>
+        <span style={{ color: '#8b949e' }}>
+          Sprint capacity is <b style={{ color: textColor }}>{CAPACITY} points</b>. Drag the highest-impact work into <b style={{ color: textColor }}>In Progress</b> without exceeding it — then check your sprint.
+        </span>
+        {missionResult && (
+          <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <b style={{ fontSize: '18px', color: missionResult.grade <= 'B' && missionResult.grade !== '—' ? '#2ea043' : missionResult.grade === '—' ? '#8b949e' : '#d29922' }}>{missionResult.grade}</b>
+            <span style={{ color: '#8b949e', maxWidth: '520px' }}>{missionResult.msg}</span>
+          </span>
+        )}
+      </div>
+
       {/* Board */}
       <div style={{ flex: 1, padding: '24px', overflowX: 'auto', display: 'flex', gap: '24px', minWidth: '900px' }}>
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>

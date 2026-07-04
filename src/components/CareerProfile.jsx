@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useCase } from '../case/CaseContext';
 import { useTokens } from '../theme';
 import { ACADEMY_DOMAINS } from '../data/academyData';
-import { XP_DIMS, RANKS, computeXP, xpTotal } from '../case/engine';
+import { XP_DIMS, RANKS, computeXP, xpTotal, computeBadges } from '../case/engine';
 import {
   completedSkills, getMissed, getAllSprintSubmissions,
   getStreak, getDaily, recordDaily,
@@ -42,6 +42,36 @@ function exportProfile() {
   const a = document.createElement('a');
   a.href = url;
   a.download = `pmverse-profile-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportPublicPortfolio(rank, totalXP, streak, earnedBadges, completedCases) {
+  let md = `# PMverse Portfolio
+Generated on: ${new Date().toISOString().slice(0, 10)}
+
+## 🏆 Current Rank: ${rank}
+- **Total XP:** ${totalXP}
+- **Current Streak:** ${streak} days
+
+## 🏅 Achievements (${earnedBadges.length})
+`;
+  earnedBadges.forEach(b => {
+    md += `- **${b.icon} ${b.name}**: ${b.desc}\n`;
+  });
+
+  md += `\n## 📂 Case Studies Completed (${completedCases.length})\n`;
+  completedCases.forEach(cs => {
+    md += `- Case ${cs.meta.number}: ${cs.meta.title} (${cs.meta.company})\n`;
+  });
+
+  md += `\n---\n*Verified via PMverse OS Simulator*`;
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `PMverse-Portfolio-${new Date().toISOString().slice(0, 10)}.md`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -90,6 +120,8 @@ export default function CareerProfile() {
 
   const sprints = getAllSprintSubmissions();
   const totalSkills = ACADEMY_DOMAINS.reduce((n, d) => n + (d.skills?.length || 0), 0);
+  const badges = computeBadges(caseList, states, { sprints, streak });
+  const earnedCount = badges.filter((b) => b.earned).length;
 
   const section = (title, children) => (
     <div style={{ backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '12px', padding: '18px 20px', marginBottom: '16px' }}>
@@ -200,6 +232,26 @@ export default function CareerProfile() {
         </div>
       ))}
 
+      {/* Badges */}
+      {section(`Achievements · ${earnedCount}/${badges.length}`, (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+          {badges.map((b) => (
+            <div key={b.id} title={b.desc} style={{
+              display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px',
+              backgroundColor: b.earned ? c.bg : 'transparent',
+              border: `1px solid ${b.earned ? c.accent : c.border}`,
+              opacity: b.earned ? 1 : 0.5,
+            }}>
+              <span style={{ fontSize: '22px', filter: b.earned ? 'none' : 'grayscale(1)' }}>{b.icon}</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '12.5px', fontWeight: 700, color: c.text }}>{b.name}</div>
+                <div style={{ fontSize: '10.5px', color: c.dim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.earned ? 'Earned' : b.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+
       {/* Academy stats */}
       {section('Academy', (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
@@ -242,9 +294,15 @@ export default function CareerProfile() {
             Stored only in this browser's localStorage; calls go directly from your browser to Anthropic. Clear the field and save to remove.
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={exportProfile} style={ghostBtn(c)}>⬇ Export profile</button>
+            <button
+              onClick={() => exportPublicPortfolio(rank, totalXP, streak, badges.filter(b => b.earned), caseList.filter(cs => states[cs.meta.id]?.decision))}
+              style={{ ...ghostBtn(c), backgroundColor: c.accent, color: '#fff', border: 'none' }}
+            >
+              🚀 Export Public Portfolio
+            </button>
+            <button onClick={exportProfile} style={ghostBtn(c)}>⬇ Backup Save</button>
             <label style={{ ...ghostBtn(c), display: 'inline-block' }}>
-              ⬆ Import profile
+              ⬆ Restore Save
               <input type="file" accept="application/json" style={{ display: 'none' }}
                 onChange={(e) => e.target.files[0] && importProfile(e.target.files[0])} />
             </label>

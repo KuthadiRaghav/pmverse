@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { CASES, CASE_LIST, DEFAULT_CASE_ID } from '../data/caseRegistry';
 import {
-  storageKey, initialState, computeXP, xpTotal, rankFor, caseReport,
+  storageKey, initialState, computeXP, xpTotal, rankFor, caseReport, computeCompanyHealth
 } from './engine';
 import { recordActivity } from '../academyProgress';
 import { playChime } from '../soundEngine';
@@ -130,6 +130,8 @@ export function CaseProvider({ children }) {
     .map((c) => caseReport(c, states[c.meta.id]))
     .filter(Boolean);
 
+  const companyHealth = computeCompanyHealth(CASE_LIST, states);
+
   // ----- progression gates: case N unlocks when case N-1 is decided.
   // A case you've already started or finished never re-locks (e.g. after
   // replaying an earlier case).
@@ -175,6 +177,19 @@ export function CaseProvider({ children }) {
 
   const setAiCoach = (text) => update((s) => ({ ...s, aiCoach: text }));
 
+  const saveReply = (messageId, text) => {
+    recordActivity();
+    update((s) => ({ ...s, replies: { ...(s.replies || {}), [messageId]: text } }));
+  };
+
+  const addChannelPost = (channelId, message) => {
+    if (message.role === 'user') recordActivity();
+    update((s) => ({
+      ...s,
+      channelPosts: { ...(s.channelPosts || {}), [channelId]: [...(s.channelPosts?.[channelId] || []), message] },
+    }));
+  };
+
   const decide = (decisionId) => {
     recordActivity();
     update((s) => {
@@ -214,11 +229,12 @@ export function CaseProvider({ children }) {
   const value = {
     caseDef, caseId, caseList: CASE_LIST, states, unlockedCaseIds,
     state, visibleMessages, unreadCount, unreadChatCount, visibleChats,
-    xp, caseTotal, totalXP, rank, artifacts,
+    xp, caseTotal, totalXP, rank, artifacts, companyHealth,
     toasts, dismissToast,
-    switchCase, acceptCase, recordEvidence, addChatMessage, setMemo, setAiCoach,
+    switchCase, acceptCase, recordEvidence, addChatMessage, setMemo, setAiCoach, saveReply, addChannelPost,
     decide, chooseFollowUp, markRead, markChatRead, resetCase, openApp,
   };
 
   return <CaseContext.Provider value={value}>{children}</CaseContext.Provider>;
 }
+

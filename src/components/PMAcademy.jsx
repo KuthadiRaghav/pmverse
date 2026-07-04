@@ -342,8 +342,23 @@ export default function PMAcademy() {
         {domain ? (
           <div>
             <h1 style={{ color: c.text, margin: '0 0 8px 0', fontSize: '32px' }}>{domain.title}</h1>
-            <p style={{ color: c.dim, margin: '0 0 40px 0', fontSize: '16px' }}>Select a skill to begin training.</p>
-            
+            {(() => {
+              const total = (domain.skills || []).length;
+              const done = (domain.skills || []).filter((s) => isSkillComplete(s.id)).length;
+              const pct = total ? Math.round((done / total) * 100) : 0;
+              return (
+                <div style={{ margin: '0 0 32px 0', maxWidth: '460px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: c.dim, marginBottom: '6px' }}>
+                    <span>{done} of {total} skills mastered</span>
+                    <span style={{ fontWeight: 700, color: pct === 100 ? c.correctText : c.primary }}>{pct}%{pct === 100 ? ' · complete 🎓' : ''}</span>
+                  </div>
+                  <div style={{ height: '8px', borderRadius: '999px', backgroundColor: c.panel, border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${c.primary}, #d946ef)`, transition: 'width 0.5s' }} />
+                  </div>
+                </div>
+              );
+            })()}
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
               {domain.skills && domain.skills.map(skill => (
                 <div 

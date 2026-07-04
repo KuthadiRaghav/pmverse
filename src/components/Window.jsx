@@ -136,7 +136,7 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
     }
   };
 
-  const bgColor = theme === 'dark' ? 'rgba(22, 27, 34, 0.85)' : 'rgba(255, 255, 255, 0.85)';
+  const bgColor = theme === 'dark' ? '#161b22' : '#ffffff';
   const borderColor = theme === 'dark' ? 'rgba(48, 54, 61, 0.8)' : 'rgba(229, 231, 235, 0.8)';
   const titleBarBg = theme === 'dark' ? 'transparent' : 'transparent';
   const titleColor = theme === 'dark' ? '#c9d1d9' : '#111827';
@@ -148,14 +148,13 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.85, y: 40 }}
+      initial={false}
       animate={
         isMinimized 
-          ? { opacity: 0, scale: 0.5, y: 150, pointerEvents: 'none' } 
-          : { opacity: 1, scale: 1, y: 0, pointerEvents: 'auto' }
+          ? { opacity: 0, scale: 0.8, pointerEvents: 'none' } 
+          : { opacity: 1, scale: 1, pointerEvents: 'auto' }
       }
-      exit={{ opacity: 0, scale: 0.85, y: 40 }}
-      transition={{ type: "spring", damping: 20, stiffness: 500 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
       onMouseDownCapture={onFocus}
       drag={!isMaximized && !isMinimized}
       dragControls={dragControls}
@@ -164,13 +163,13 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
       onDragEnd={handleDragEnd}
       style={{
         position: 'absolute',
+        top: 0,
+        left: 0,
         x: xPos,
         y: yPos,
         width: size.width,
         height: size.height,
         backgroundColor: bgColor,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
         border: `1px solid ${borderColor}`,
         borderRadius: isMaximized ? '0px' : '16px',
         boxShadow: shadow,
