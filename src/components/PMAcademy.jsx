@@ -10,7 +10,7 @@ import { playSuccess, playError, playPop } from '../soundEngine';
 import { 
   BookOpen, Award, Clock, Lock, CheckCircle, PlayCircle, ChevronRight, ArrowLeft,
   Briefcase, Zap, Compass, BrainCircuit, Target, Code, CheckCircle2,
-  Sparkles
+  Sparkles, Film, Flame, Pause, Lightbulb, FileText, ChevronDown, ChevronUp, PieChart
 } from 'lucide-react';
 
 function gradeSprint(questions, answers) {
@@ -38,7 +38,9 @@ const IconMap = {
   "Zap": <Zap size={18} />,
   "BrainCircuit": <BrainCircuit size={18} />,
   "Target": <Target size={18} />,
-  "Code": <Code size={18} />
+  "Code": <Code size={18} />,
+  "Film": <Film size={18} />,
+  "Flame": <Flame size={18} />
 };
 
 export default function PMAcademy() {
@@ -69,6 +71,10 @@ export default function PMAcademy() {
   const [sprintAnswers, setSprintAnswers] = useState([]);
   const [sprintResult, setSprintResult] = useState(null);
 
+  const [caseStep, setCaseStep] = useState(0);
+  const [caseAnswers, setCaseAnswers] = useState({});
+  const [hintsExpanded, setHintsExpanded] = useState(false);
+
   // Auto-scroll to top when lesson changes
   useEffect(() => {
     const el = document.getElementById('academy-scroll-container');
@@ -81,10 +87,13 @@ export default function PMAcademy() {
     if (skill.locked) return;
     setSelectedSkill(skill);
     setCurrentLessonIndex(0);
-    setLessonState(skill.lessons[0].type === 'mcq' ? 'mcq' : 'reading');
+    setLessonState(skill.lessons ? (skill.lessons[0].type === 'mcq' ? 'mcq' : 'reading') : 'reading');
     setSelectedOption(null);
     setSprintAnswers([]);
     setSprintResult(null);
+    setCaseStep(0);
+    setCaseAnswers({});
+    setHintsExpanded(false);
   };
 
   const handleNextLesson = () => {
@@ -601,9 +610,377 @@ export default function PMAcademy() {
     );
   };
 
+  
+  const renderCaseBrowser = () => {
+    const isMasteryActive = domain.skills.some(s => isSkillComplete(s.id));
+    const completedCount = domain.skills.filter(s => isSkillComplete(s.id)).length;
+    const totalCount = domain.skills.length;
+    const pct = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+
+    return (
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Sidebar */}
+        <div style={{ width: '300px', backgroundColor: c.panel, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+          <div style={{ padding: '40px 24px 24px 24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: c.text, margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ padding: '8px', backgroundColor: c.primaryHover, borderRadius: '8px', color: c.primary }}><BookOpen size={24} /></div>
+              PM Academy
+            </h2>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 32px 16px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.textDim, marginBottom: '16px', paddingLeft: '8px' }}>
+              Curriculum
+            </div>
+            {ACADEMY_DOMAINS.map((dom, idx) => {
+              const isSelected = idx === selectedDomainIndex;
+              const total = (dom.skills || []).length;
+              const done = (dom.skills || []).filter((s) => isSkillComplete(s.id)).length;
+              const pct = total ? Math.round((done / total) * 100) : 0;
+              
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedDomainIndex(idx)}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '16px', marginBottom: '8px',
+                    backgroundColor: isSelected ? c.primaryHover : 'transparent',
+                    border: 'none',
+                    borderRadius: '12px',
+                    color: isSelected ? c.primary : c.textDim,
+                    cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: '8px',
+                    position: 'relative', overflow: 'hidden'
+                  }}
+                >
+                  {isSelected && <div style={{ position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3px', backgroundColor: c.primary, borderRadius: '0 4px 4px 0' }} />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: isSelected ? 700 : 500, fontSize: '15px' }}>
+                    {IconMap[dom.lucideIcon] || <BookOpen size={18} />}
+                    {dom.title}
+                  </div>
+                  {total > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '30px' }}>
+                      <div style={{ flex: 1, height: '4px', backgroundColor: isSelected ? 'rgba(139,92,246,0.2)' : c.border, borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', backgroundColor: pct === 100 ? c.correctText : (isSelected ? c.primary : c.textDim) }} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: isSelected ? c.primary : c.textDim }}>{done}/{total}</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      
+        {/* Main Workspace */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: c.bg, position: 'relative', overflowY: 'auto' }}>
+        {/* Header */}
+        <div style={{ padding: '40px 56px 20px', display: 'flex', gap: '32px' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `linear-gradient(135deg, ${c.primary}, #ec4899)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: `0 4px 20px ${c.primary}40` }}>
+                <CheckCircle2 size={24} />
+              </div>
+              <h1 style={{ margin: 0, fontSize: '32px', fontWeight: 800, color: c.text, letterSpacing: '-0.5px' }}>{domain.title}</h1>
+            </div>
+            <p style={{ margin: 0, fontSize: '16px', color: c.textDim, lineHeight: 1.6, maxWidth: '600px' }}>
+              Master the core concepts of case studies with interactive scenarios and real-world breakdowns.
+            </p>
+            <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
+              <span style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: c.panel, border: `1px solid ${c.border}`, fontSize: '13px', fontWeight: 600, color: c.text, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BookOpen size={16} color={c.primary} /> Real-world Scenarios
+              </span>
+              <span style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: c.panel, border: `1px solid ${c.border}`, fontSize: '13px', fontWeight: 600, color: c.text, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Target size={16} color={c.primary} /> Step-by-step Breakdowns
+              </span>
+              <span style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: c.panel, border: `1px solid ${c.border}`, fontSize: '13px', fontWeight: 600, color: c.text, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Lightbulb size={16} color={c.primary} /> Expert Insights
+              </span>
+            </div>
+          </div>
+          
+          <div style={{ width: '320px', backgroundColor: c.panel, borderRadius: '16px', padding: '24px', border: `1px solid ${c.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 700, color: c.text }}>Domain Mastery</span>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: c.primary }}>{pct}%</span>
+            </div>
+            <div style={{ height: '8px', borderRadius: '4px', backgroundColor: c.panelHover, overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', backgroundColor: c.primary }} />
+            </div>
+            <div style={{ fontSize: '13px', color: c.textDim, marginTop: '12px' }}>
+              {completedCount} of {totalCount} skills completed
+            </div>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div style={{ padding: '40px 56px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: c.text, margin: 0 }}>Your Case Studies</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.textDim, fontSize: '14px' }}>
+              Sort by:
+              <select style={{ backgroundColor: c.panel, color: c.text, border: `1px solid ${c.border}`, padding: '4px 8px', borderRadius: '6px', outline: 'none' }}>
+                <option>Recommended</option>
+                <option>Newest</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+            {domain.skills.map((caseStudy) => {
+              const isCompleted = isSkillComplete(caseStudy.id);
+              const iconEl = IconMap[caseStudy.icon] || <BookOpen size={20} />;
+              
+              return (
+                <div 
+                  key={caseStudy.id}
+                  onClick={() => handleStartSkill(caseStudy)}
+                  style={{
+                    backgroundColor: c.panel,
+                    borderRadius: '16px',
+                    border: `1px solid ${c.border}`,
+                    padding: '24px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = `0 12px 24px rgba(0,0,0,0.2)`;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: caseStudy.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: `0 4px 12px ${caseStudy.color}66` }}>
+                      {iconEl}
+                    </div>
+                    <span style={{ fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '12px', border: `1px solid ${caseStudy.color}40`, color: caseStudy.color, backgroundColor: `${caseStudy.color}15` }}>
+                      {caseStudy.difficulty}
+                    </span>
+                  </div>
+                  
+                  <h3 style={{ fontSize: '20px', fontWeight: 700, color: c.text, margin: '0 0 12px 0' }}>{caseStudy.title}</h3>
+                  <p style={{ fontSize: '14px', color: c.textDim, margin: '0 0 24px 0', lineHeight: 1.5, flex: 1 }}>{caseStudy.description}</p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: c.textDim, fontSize: '13px', marginBottom: '24px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {caseStudy.time}</span>
+                    <span>•</span>
+                    <span>{caseStudy.difficulty}</span>
+                  </div>
+                  
+                  <button style={{ 
+                    width: '100%', padding: '12px', borderRadius: '8px', border: `1px solid ${caseStudy.color}40`, 
+                    backgroundColor: `${caseStudy.color}10`, color: caseStudy.color, fontWeight: 600, fontSize: '14px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'
+                  }}>
+                    {isCompleted ? 'Review Case Study' : 'Start Case Study'}
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      </div>
+    );
+  };
+
+  const renderCasePlayer = () => {
+    const step = selectedSkill.steps[caseStep];
+    const isLastStep = caseStep === selectedSkill.steps.length - 1;
+
+    const handleNext = () => {
+      if (isLastStep) {
+        markSkillComplete(selectedSkill.id);
+        playSuccess();
+        setSelectedSkill(null);
+      } else {
+        playPop();
+        setCaseStep(prev => prev + 1);
+        setHintsExpanded(false);
+      }
+    };
+
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: c.bg, minHeight: 0 }}>
+        {/* Top Nav */}
+        <div style={{ padding: '16px 24px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.panel }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button onClick={() => setSelectedSkill(null)} style={{ background: 'none', border: 'none', color: c.textDim, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <ArrowLeft size={20} />
+            </button>
+            <span style={{ color: c.primary, fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Zap size={16} /> {selectedSkill.title}
+            </span>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            {selectedSkill.steps.map((s, idx) => (
+              <React.Fragment key={s.id}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: idx <= caseStep ? 1 : 0.4 }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '12px', backgroundColor: idx < caseStep ? c.primary : idx === caseStep ? c.primaryHover : c.panelHover, border: `1px solid ${idx <= caseStep ? c.primary : c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, color: idx <= caseStep ? c.primary : c.textDim }}>
+                    {idx < caseStep ? <CheckCircle2 size={14} color={c.primary} /> : (idx + 1)}
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: idx === caseStep ? 600 : 500, color: idx <= caseStep ? c.text : c.textDim }}>{s.title.split(' ')[0]}</span>
+                </div>
+                {idx < selectedSkill.steps.length - 1 && <div style={{ width: '40px', height: '1px', backgroundColor: idx < caseStep ? c.primary : c.border, margin: '0 8px' }} />}
+              </React.Fragment>
+            ))}
+          </div>
+          
+          <button style={{ padding: '6px 12px', borderRadius: '6px', border: `1px solid ${c.border}`, backgroundColor: 'transparent', color: c.text, fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+            <Pause size={14} /> Pause
+          </button>
+        </div>
+
+        {/* Main Content Area */}
+        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+          {/* Center Workspace */}
+          <div style={{ flex: 1, padding: '40px 60px', overflowY: 'auto' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: c.primary, marginBottom: '8px', display: 'block' }}>Step {caseStep + 1} of {selectedSkill.steps.length}</span>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: c.text, margin: '0 0 8px 0' }}>{step.title}</h1>
+            <p style={{ fontSize: '16px', color: c.textDim, margin: '0 0 32px 0' }}>{step.subtitle}</p>
+
+            <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: c.text, marginBottom: '16px' }}>The Situation</h3>
+              <div style={{ fontSize: '16px', color: c.text, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                {step.situation}
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: `${c.primary}15`, border: `1px solid ${c.primary}40`, borderRadius: '12px', padding: '20px', marginBottom: '40px', display: 'flex', gap: '16px' }}>
+              <Lightbulb size={24} color={c.primary} style={{ flexShrink: 0 }} />
+              <div>
+                <h4 style={{ margin: '0 0 8px 0', color: c.primary, fontSize: '15px', fontWeight: 700 }}>Tip</h4>
+                <p style={{ margin: 0, color: c.text, fontSize: '15px', lineHeight: 1.5 }}>{step.tip}</p>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: c.text, marginBottom: '16px' }}>Your Approach</h3>
+              <p style={{ color: c.textDim, fontSize: '15px', marginBottom: '16px' }}>{step.prompt}</p>
+              
+              <textarea 
+                value={caseAnswers[caseStep] || ''}
+                onChange={(e) => setCaseAnswers(prev => ({ ...prev, [caseStep]: e.target.value }))}
+                placeholder="Type your answer here..."
+                style={{
+                  width: '100%', height: '160px', padding: '16px', borderRadius: '12px',
+                  backgroundColor: c.panelHover, border: `1px solid ${c.border}`, color: c.text,
+                  fontSize: '15px', lineHeight: 1.5, resize: 'vertical', outline: 'none',
+                  fontFamily: 'inherit', boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = c.primary}
+                onBlur={(e) => e.target.style.borderColor = c.border}
+              />
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                <button style={{ background: 'none', border: 'none', color: c.textDim, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <FileText size={16} /> Add notes
+                </button>
+                <button 
+                  onClick={handleNext}
+                  style={{
+                    padding: '12px 24px', borderRadius: '8px', backgroundColor: c.primary,
+                    color: '#fff', fontSize: '15px', fontWeight: 600, border: 'none',
+                    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                    boxShadow: `0 4px 12px ${c.primary}40`
+                  }}
+                >
+                  {isLastStep ? 'Finish Case' : 'Submit & Continue'} <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+            
+            {caseAnswers[caseStep] && (
+              <div className="animate-fade-in" style={{ marginTop: '40px', padding: '24px', backgroundColor: c.panelHover, borderRadius: '12px', border: `1px solid ${c.border}` }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: c.text }}>Model Approach:</h4>
+                <p style={{ margin: 0, fontSize: '15px', color: c.textDim, lineHeight: 1.6 }}>{step.modelAnswer}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
+          <div style={{ width: '300px', backgroundColor: c.panel, borderLeft: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '24px', borderBottom: `1px solid ${c.border}` }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: c.text, margin: '0 0 16px 0' }}>Your Progress</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '32px', border: `6px solid ${c.panelHover}`, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* CSS fake donut chart */}
+                  <div style={{ position: 'absolute', inset: -6, borderRadius: '50%', background: `conic-gradient(${c.primary} ${((caseStep + 1)/selectedSkill.steps.length)*100}%, transparent 0)` }} />
+                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: c.panel }} />
+                  <span style={{ position: 'relative', fontSize: '14px', fontWeight: 700, color: c.text }}>{Math.round(((caseStep + 1)/selectedSkill.steps.length)*100)}%</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', color: c.textDim, fontWeight: 500 }}>Step {caseStep + 1} of {selectedSkill.steps.length}</div>
+                  <div style={{ fontSize: '15px', color: c.text, fontWeight: 600 }}>{step.title.split(' ')[0]}</div>
+                </div>
+              </div>
+              <div style={{ height: '4px', backgroundColor: c.panelHover, borderRadius: '2px', marginTop: '24px' }}>
+                <div style={{ height: '100%', width: `${((caseStep + 1)/selectedSkill.steps.length)*100}%`, backgroundColor: c.primary, borderRadius: '2px', transition: 'width 0.3s' }} />
+              </div>
+            </div>
+
+            <div style={{ padding: '24px', borderBottom: `1px solid ${c.border}` }}>
+              <button 
+                onClick={() => setHintsExpanded(!hintsExpanded)}
+                style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: c.text, fontSize: '15px', fontWeight: 700 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Lightbulb size={18} color="#d97706" /> Hints
+                </div>
+                {hintsExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </button>
+              
+              {hintsExpanded && (
+                <div className="animate-slide-up" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {step.hints.map((hint, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '12px', fontSize: '14px', color: c.textDim }}>
+                      <span style={{ color: c.primary }}>•</span> {hint}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <button style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: c.text, fontSize: '15px', fontWeight: 700, marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FileText size={18} /> Case Resources
+                </div>
+                <ChevronUp size={18} />
+              </button>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {selectedSkill.resources.map((res, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: c.panelHover, borderRadius: '8px', border: `1px solid ${c.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: c.text, fontSize: '13px', fontWeight: 500 }}>
+                      <FileText size={16} color={c.textDim} /> {res.name}
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: c.textDim, backgroundColor: c.bg, padding: '2px 6px', borderRadius: '4px', border: `1px solid ${c.border}` }}>
+                      {res.type}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              
+              <button style={{ marginTop: '16px', background: 'none', border: 'none', color: c.primary, fontSize: '13px', fontWeight: 600, padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                View All Resources <ArrowLeft size={14} style={{ transform: 'rotate(180deg)' }} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', backgroundColor: c.bg, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-      {selectedSkill ? renderPlayer() : renderBrowser()}
+      {selectedSkill ? (domain.id === 'case-studies' ? renderCasePlayer() : renderPlayer()) : (domain.id === 'case-studies' ? renderCaseBrowser() : renderBrowser())}
       
       {/* Global CSS for markdown and animations */}
       <style>{`

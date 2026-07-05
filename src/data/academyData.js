@@ -2,10 +2,10 @@ import { FOUNDATIONS_DOMAIN, STRATEGY_DOMAIN } from './academyFoundations';
 import { FINANCE_SKILLS } from './academyFinance';
 
 import { AI_ERA_DOMAINS } from './academyAIEra';
-import { AI_CASE_STUDIES_DOMAIN } from './academyCaseStudies';
+import { NEW_CASE_STUDIES_DOMAIN } from './caseStudiesData';
 
 export const ACADEMY_DOMAINS = [
-  AI_CASE_STUDIES_DOMAIN,
+  NEW_CASE_STUDIES_DOMAIN,
   ...AI_ERA_DOMAINS,
   FOUNDATIONS_DOMAIN,
   STRATEGY_DOMAIN,
