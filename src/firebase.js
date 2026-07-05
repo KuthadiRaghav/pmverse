@@ -1,18 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getAnalytics } from 'firebase/analytics';
 
-// TODO: Replace with your actual Firebase config object
-// 1. Go to console.firebase.google.com
-// 2. Create a project and add a Web App
-// 3. Paste the config below
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDk2XhU5rujNnYwj0GVkaijBNp6J4JfPxw",
+  authDomain: "pmversestudio.firebaseapp.com",
+  projectId: "pmversestudio",
+  storageBucket: "pmversestudio.firebasestorage.app",
+  messagingSenderId: "783139057211",
+  appId: "1:783139057211:web:603f9bbed55c15e895361e",
+  measurementId: "G-39P3RB7NRB"
 };
 
 // Initialize Firebase
@@ -24,6 +22,11 @@ try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  
+  // Analytics is only initialized if we are in a browser environment
+  if (typeof window !== 'undefined') {
+    getAnalytics(app);
+  }
 } catch (error) {
   console.error("Firebase initialization error:", error);
 }

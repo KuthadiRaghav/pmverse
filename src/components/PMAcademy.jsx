@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ACADEMY_DOMAINS } from '../data/academyData';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,9 +7,12 @@ import {
   isSkillComplete, markSkillComplete, recordMcq, saveSprintSubmission,
 } from '../academyProgress';
 import { playSuccess, playError, playPop } from '../soundEngine';
+import { 
+  BookOpen, Award, Clock, Lock, CheckCircle, PlayCircle, ChevronRight, ArrowLeft,
+  Briefcase, Zap, Compass, BrainCircuit, Target, Code, CheckCircle2,
+  Sparkles
+} from 'lucide-react';
 
-// Rubric-grade a set of design-sprint answers (same regex-rubric approach as
-// the Case Engine's memo grading)
 function gradeSprint(questions, answers) {
   const perQuestion = questions.map((question, i) => {
     const answer = (answers[i] || '').trim();
@@ -29,31 +32,48 @@ function gradeSprint(questions, answers) {
   return { perQuestion, points, max, grade };
 }
 
+const IconMap = {
+  "Compass": <Compass size={18} />,
+  "Briefcase": <Briefcase size={18} />,
+  "Zap": <Zap size={18} />,
+  "BrainCircuit": <BrainCircuit size={18} />,
+  "Target": <Target size={18} />,
+  "Code": <Code size={18} />
+};
+
 export default function PMAcademy() {
   const { theme } = useTheme();
   const dark = theme === 'dark';
   
   const c = {
-    bg: dark ? '#0d1117' : '#ffffff',
-    panel: dark ? '#161b22' : '#f3f4f6',
-    border: dark ? '#30363d' : '#e5e7eb',
-    text: dark ? '#c9d1d9' : '#111827',
-    dim: dark ? '#8b949e' : '#6b7280',
-    primary: '#8957e5',
-    primaryHover: dark ? 'rgba(137, 87, 229, 0.1)' : 'rgba(137, 87, 229, 0.05)',
-    correctText: dark ? '#2ea043' : '#16a34a',
-    correctBg: dark ? 'rgba(46, 160, 67, 0.1)' : 'rgba(22, 163, 74, 0.1)',
-    errorText: dark ? '#f85149' : '#dc2626',
-    errorBg: dark ? 'rgba(248, 81, 73, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+    bg: dark ? '#0a0a0c' : '#fcfcfc',
+    panel: dark ? '#13141a' : '#ffffff',
+    panelHover: dark ? '#1c1d24' : '#f4f4f5',
+    border: dark ? '#27272a' : '#e4e4e7',
+    text: dark ? '#f4f4f5' : '#09090b',
+    textDim: dark ? '#a1a1aa' : '#71717a',
+    primary: '#8b5cf6',
+    primaryHover: dark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.08)',
+    correctText: dark ? '#34d399' : '#10b981',
+    correctBg: dark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)',
+    errorText: dark ? '#f87171' : '#ef4444',
+    errorBg: dark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)',
+    glassBg: dark ? 'rgba(19, 20, 26, 0.7)' : 'rgba(255, 255, 255, 0.7)',
   };
 
   const [selectedDomainIndex, setSelectedDomainIndex] = useState(0);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-  const [lessonState, setLessonState] = useState('reading'); // 'reading', 'mcq', 'answered'
+  const [lessonState, setLessonState] = useState('reading'); 
   const [selectedOption, setSelectedOption] = useState(null);
   const [sprintAnswers, setSprintAnswers] = useState([]);
   const [sprintResult, setSprintResult] = useState(null);
+
+  // Auto-scroll to top when lesson changes
+  useEffect(() => {
+    const el = document.getElementById('academy-scroll-container');
+    if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentLessonIndex, selectedSkill]);
 
   const domain = ACADEMY_DOMAINS[selectedDomainIndex];
 
@@ -111,298 +131,513 @@ export default function PMAcademy() {
 
   const renderPlayer = () => {
     const lesson = selectedSkill.lessons[currentLessonIndex];
-    const progress = Math.round(((currentLessonIndex + 1) / selectedSkill.lessons.length) * 100);
 
     return (
-      <div style={{ padding: '32px', boxSizing: 'border-box', maxWidth: '800px', margin: '0 auto', flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, backgroundColor: c.bg, position: 'relative' }}>
+        
+        {/* Top Navigation Bar - Premium Progress Line */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', backgroundColor: c.bg, zIndex: 10 }}>
           <button 
             onClick={() => setSelectedSkill(null)}
-            style={{ background: 'none', border: 'none', color: c.dim, cursor: 'pointer', fontSize: '14px', padding: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: c.textDim, cursor: 'pointer', fontSize: '14px', fontWeight: 600, padding: 0, transition: 'color 0.2s' }}
+            onMouseOver={(e) => e.currentTarget.style.color = c.text}
+            onMouseOut={(e) => e.currentTarget.style.color = c.textDim}
           >
-            ← Back to curriculum
+            <ArrowLeft size={18} /> Back
           </button>
-          <div style={{ color: c.dim, fontSize: '14px' }}>
-            {currentLessonIndex + 1} of {selectedSkill.lessons.length}
+          
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '6px', padding: '0 40px' }}>
+            {selectedSkill.lessons.map((_, idx) => (
+              <div 
+                key={idx} 
+                style={{ 
+                  flex: 1, maxWidth: '60px', height: '6px', borderRadius: '4px',
+                  backgroundColor: idx < currentLessonIndex ? c.primary : idx === currentLessonIndex ? c.primary : c.border,
+                  opacity: idx <= currentLessonIndex ? 1 : (dark ? 0.3 : 0.6),
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: idx === currentLessonIndex ? `0 0 10px ${c.primary}66` : 'none'
+                }}
+              />
+            ))}
+          </div>
+
+          <div style={{ color: c.textDim, fontSize: '14px', fontWeight: 600, width: '70px', textAlign: 'right' }}>
+            {currentLessonIndex + 1} <span style={{ opacity: 0.5 }}>/ {selectedSkill.lessons.length}</span>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div style={{ width: '100%', height: '4px', backgroundColor: c.border, borderRadius: '2px', marginBottom: '32px' }}>
-          <div style={{ width: `${progress}%`, height: '100%', backgroundColor: c.primary, borderRadius: '2px', transition: 'width 0.3s' }} />
-        </div>
-
         {/* Content Area */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '16px' }}>
-          {lesson.type === 'video' ? (
-            <div>
-              <h1 style={{ color: c.text, fontSize: '28px', marginBottom: '24px', fontWeight: '600' }}>{lesson.title}</h1>
-              <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '8px' }}>
-                <iframe 
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-                  src={lesson.url} 
-                  title={lesson.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <div style={{ color: c.dim, marginTop: '16px' }}>{lesson.description}</div>
-            </div>
-          ) : lesson.type === 'sprint' ? (
-            <div>
-              <h1 style={{ color: c.text, fontSize: '26px', marginBottom: '8px', fontWeight: '600' }}>{lesson.title}</h1>
-              <div style={{ fontSize: '12px', color: c.primary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '18px' }}>
-                Design Sprint · graded by the Coach · saved to your Portfolio
-              </div>
-              <div style={{ color: c.text, fontSize: '15px', lineHeight: '1.7', marginBottom: '24px' }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{lesson.brief}</ReactMarkdown>
-              </div>
-              {lesson.questions.map((question, i) => {
-                const qResult = sprintResult?.perQuestion[i];
-                return (
-                  <div key={i} style={{ marginBottom: '20px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '10px', padding: '16px' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: c.text, marginBottom: '4px' }}>
-                      {i + 1}. {question.q}
-                    </div>
-                    {question.hint && <div style={{ fontSize: '12.5px', color: c.dim, marginBottom: '10px' }}>{question.hint}</div>}
-                    <textarea
-                      value={sprintAnswers[i] || ''}
-                      onChange={(e) => {
-                        const next = [...sprintAnswers];
-                        next[i] = e.target.value;
-                        setSprintAnswers(next);
-                      }}
-                      disabled={!!sprintResult}
-                      placeholder="Your answer — be specific: users, metrics, tradeoffs…"
-                      style={{
-                        width: '100%', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box',
-                        backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}`,
-                        borderRadius: '8px', padding: '10px 12px', fontSize: '13.5px', lineHeight: 1.5,
-                        fontFamily: 'inherit', outline: 'none', opacity: sprintResult ? 0.75 : 1,
-                      }}
-                    />
-                    {qResult && (
-                      <div style={{ marginTop: '10px' }}>
-                        {qResult.hits.map((h) => (
-                          <div key={h} style={{ fontSize: '12.5px', color: c.correctText, padding: '2px 0' }}>✓ {h}</div>
-                        ))}
-                        {qResult.misses.map((m) => (
-                          <div key={m} style={{ fontSize: '12.5px', color: c.errorText, padding: '2px 0' }}>✕ Missing: {m}</div>
-                        ))}
-                        <div style={{ marginTop: '10px', padding: '12px', backgroundColor: c.primaryHover, borderLeft: `3px solid ${c.primary}`, borderRadius: '4px', fontSize: '13px', color: c.text, lineHeight: 1.6 }}>
-                          <strong>Model answer:</strong> {question.model}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {!sprintResult ? (
-                <button
-                  onClick={() => handleSprintSubmit(lesson)}
-                  disabled={!sprintAnswers.some((a) => (a || '').trim())}
-                  style={{
-                    padding: '12px 26px', backgroundColor: c.primary, color: '#fff', border: 'none',
-                    borderRadius: '8px', fontSize: '14px', fontWeight: 'bold',
-                    cursor: sprintAnswers.some((a) => (a || '').trim()) ? 'pointer' : 'not-allowed',
-                    opacity: sprintAnswers.some((a) => (a || '').trim()) ? 1 : 0.4,
-                  }}
-                >
-                  Submit for grading
-                </button>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', padding: '16px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '10px' }}>
-                  <span style={{ fontSize: '34px', fontWeight: 800, color: sprintResult.grade <= 'B' ? c.correctText : c.errorText }}>{sprintResult.grade}</span>
-                  <span style={{ fontSize: '13px', color: c.dim }}>
-                    {sprintResult.points}/{sprintResult.max} rubric points · submission saved to your Portfolio 📁
-                  </span>
+        <div id="academy-scroll-container" style={{ flex: 1, overflowY: 'auto', padding: '40px 24px 120px 24px' }}>
+          <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+            {lesson.type === 'video' ? (
+              <div className="animate-slide-up">
+                <h1 style={{ color: c.text, fontSize: '36px', marginBottom: '12px', fontWeight: '800', letterSpacing: '-0.03em' }}>{lesson.title}</h1>
+                <div style={{ color: c.textDim, fontSize: '18px', marginBottom: '40px', lineHeight: 1.6 }}>{lesson.description}</div>
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                  <iframe 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                    src={lesson.url} 
+                    title={lesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
                 </div>
-              )}
-            </div>
-          ) : lesson.type === 'teach' || lesson.type === 'scenario' ? (
-            <div>
-              <h1 style={{ color: c.text, fontSize: '28px', marginBottom: '24px', fontWeight: '600' }}>{lesson.title}</h1>
-              <div style={{ color: c.text, fontSize: '16px', lineHeight: '1.7', whiteSpace: 'pre-wrap', 
-                // Basic markdown styling for the container
-                '--md-color': c.text, '--md-link': '#58a6ff', '--md-code-bg': c.panel, '--md-border': c.border
-              }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {lesson.body}
-                </ReactMarkdown>
               </div>
-              {lesson.keyTakeaway && (
-                <div style={{ marginTop: '32px', padding: '16px', backgroundColor: c.primaryHover, borderLeft: `4px solid ${c.primary}`, borderRadius: '4px', color: c.text }}>
-                  <strong>Key Takeaway:</strong> {lesson.keyTakeaway}
+            ) : lesson.type === 'sprint' ? (
+              <div className="animate-slide-up">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.primary, fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '16px' }}>
+                  <Zap size={18} /> Design Sprint
                 </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <h2 style={{ color: c.text, fontSize: '22px', marginBottom: '32px', fontWeight: '500', lineHeight: '1.4' }}>
-                {lesson.prompt}
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {lesson.options.map((opt, idx) => {
-                  const isSelected = selectedOption === idx;
-                  const showCorrect = lessonState === 'answered' && opt.correct;
-                  const showIncorrect = lessonState === 'answered' && isSelected && !opt.correct;
-                  
-                  let border = `1px solid ${c.border}`;
-                  let bg = c.panel;
-                  if (showCorrect) { border = `1px solid ${c.correctText}`; bg = c.correctBg; }
-                  if (showIncorrect) { border = `1px solid ${c.errorText}`; bg = c.errorBg; }
-                  if (isSelected && !showCorrect && !showIncorrect) border = `1px solid ${c.primary}`;
+                <h1 style={{ color: c.text, fontSize: '36px', marginBottom: '32px', fontWeight: '800', letterSpacing: '-0.03em' }}>{lesson.title}</h1>
+                
+                <div style={{ color: c.text, fontSize: '17px', lineHeight: '1.8', marginBottom: '40px', padding: '32px', backgroundColor: c.panel, borderRadius: '16px', border: `1px solid ${c.border}`, boxShadow: `0 4px 20px ${c.border}11` }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{lesson.brief}</ReactMarkdown>
+                </div>
 
+                {lesson.questions.map((question, i) => {
+                  const qResult = sprintResult?.perQuestion[i];
                   return (
-                    <button
-                      key={idx}
-                      onClick={() => handleOptionClick(idx)}
-                      style={{
-                        textAlign: 'left',
-                        padding: '16px 20px',
-                        backgroundColor: bg,
-                        border: border,
-                        borderRadius: '8px',
-                        color: c.text,
-                        fontSize: '15px',
-                        cursor: lessonState === 'answered' ? 'default' : 'pointer',
-                        transition: 'all 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <span>{opt.text}</span>
-                      {showCorrect && <span style={{ color: c.correctText }}>✓</span>}
-                      {showIncorrect && <span style={{ color: c.errorText }}>✕</span>}
-                    </button>
+                    <div key={i} style={{ marginBottom: '32px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: c.text, marginBottom: '12px' }}>
+                        {i + 1}. {question.q}
+                      </div>
+                      {question.hint && <div style={{ fontSize: '15px', color: c.textDim, marginBottom: '16px' }}>{question.hint}</div>}
+                      <textarea
+                        value={sprintAnswers[i] || ''}
+                        onChange={(e) => {
+                          const next = [...sprintAnswers];
+                          next[i] = e.target.value;
+                          setSprintAnswers(next);
+                        }}
+                        disabled={!!sprintResult}
+                        placeholder="Type your answer here..."
+                        style={{
+                          width: '100%', minHeight: '140px', resize: 'vertical', boxSizing: 'border-box',
+                          backgroundColor: c.bg, color: c.text, border: `2px solid ${sprintAnswers[i] ? c.primary : c.border}`,
+                          borderRadius: '12px', padding: '20px', fontSize: '16px', lineHeight: 1.7,
+                          fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.3s, box-shadow 0.3s',
+                          boxShadow: sprintAnswers[i] && !sprintResult ? `0 0 0 4px ${c.primaryHover}` : 'none',
+                          opacity: sprintResult ? 0.75 : 1,
+                        }}
+                      />
+                      {qResult && (
+                        <div className="animate-slide-up" style={{ marginTop: '16px', backgroundColor: c.panel, padding: '20px', borderRadius: '12px', border: `1px solid ${c.border}` }}>
+                          {qResult.hits.map((h) => (
+                            <div key={h} style={{ fontSize: '15px', color: c.correctText, padding: '6px 0', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle2 size={18} /> {h}</div>
+                          ))}
+                          {qResult.misses.map((m) => (
+                            <div key={m} style={{ fontSize: '15px', color: c.errorText, padding: '6px 0', display: 'flex', alignItems: 'center', gap: '12px' }}><Target size={18} /> Missing: {m}</div>
+                          ))}
+                          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: `1px solid ${c.border}`, fontSize: '15px', color: c.text, lineHeight: 1.7 }}>
+                            <strong style={{ color: c.primary, display: 'block', marginBottom: '8px' }}>Model Answer:</strong>{question.model}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
+
+                {!sprintResult ? (
+                  <button
+                    onClick={() => handleSprintSubmit(lesson)}
+                    disabled={!sprintAnswers.some((a) => (a || '').trim())}
+                    style={{
+                      width: '100%', padding: '20px', backgroundColor: c.primary, color: '#fff', border: 'none',
+                      borderRadius: '16px', fontSize: '18px', fontWeight: '800', marginTop: '24px',
+                      cursor: sprintAnswers.some((a) => (a || '').trim()) ? 'pointer' : 'not-allowed',
+                      opacity: sprintAnswers.some((a) => (a || '').trim()) ? 1 : 0.5,
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    Submit for Grading
+                  </button>
+                ) : (
+                  <div className="animate-slide-up" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '32px', backgroundColor: sprintResult.grade <= 'B' ? c.correctBg : c.errorBg, border: `2px solid ${sprintResult.grade <= 'B' ? c.correctText : c.errorText}`, borderRadius: '16px', marginTop: '24px' }}>
+                    <div style={{ fontSize: '64px', fontWeight: 900, color: sprintResult.grade <= 'B' ? c.correctText : c.errorText, lineHeight: 1 }}>{sprintResult.grade}</div>
+                    <div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: c.text, marginBottom: '6px' }}>
+                        {sprintResult.points} out of {sprintResult.max} points scored
+                      </div>
+                      <div style={{ fontSize: '15px', color: c.textDim }}>
+                        This sprint has been graded and saved to your Portfolio.
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              {lessonState === 'answered' && (
-                <div style={{ marginTop: '24px', padding: '16px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '8px', color: c.dim, fontSize: '15px', lineHeight: '1.5' }}>
-                  {lesson.options[selectedOption].explanation}
+            ) : lesson.type === 'teach' || lesson.type === 'scenario' ? (
+              <div className="animate-slide-up">
+                {lesson.type === 'scenario' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.primary, fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '16px' }}>
+                    <Compass size={18} /> Real-World Scenario
+                  </div>
+                )}
+                <h1 style={{ color: c.text, fontSize: '38px', marginBottom: '40px', fontWeight: '800', letterSpacing: '-0.03em', lineHeight: 1.2 }}>{lesson.title}</h1>
+                <div className="markdown-body" style={{ 
+                  color: c.text, fontSize: '18px', lineHeight: '1.8', whiteSpace: 'pre-wrap', 
+                  '--md-color': c.text, '--md-link': c.primary, '--md-code-bg': c.panelHover, '--md-border': c.border
+                }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lesson.body}
+                  </ReactMarkdown>
                 </div>
-              )}
-            </div>
-          )}
+                {lesson.keyTakeaway && (
+                  <div style={{ 
+                    marginTop: '56px', padding: '32px', backgroundColor: c.primaryHover, 
+                    borderLeft: `4px solid ${c.primary}`, borderRadius: '0 16px 16px 0', 
+                    color: c.text, display: 'flex', gap: '20px', alignItems: 'flex-start' 
+                  }}>
+                    <div style={{ color: c.primary, paddingTop: '4px' }}><Sparkles size={28} /></div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: c.primary, marginBottom: '12px' }}>Key Takeaway</div>
+                      <div style={{ fontSize: '18px', lineHeight: 1.7, fontWeight: 500 }}>{lesson.keyTakeaway}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="animate-slide-up">
+                <h2 style={{ color: c.text, fontSize: '30px', marginBottom: '48px', fontWeight: '700', lineHeight: '1.4', letterSpacing: '-0.01em' }}>
+                  {lesson.prompt}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {lesson.options.map((opt, idx) => {
+                    const isSelected = selectedOption === idx;
+                    const showCorrect = lessonState === 'answered' && opt.correct;
+                    const showIncorrect = lessonState === 'answered' && isSelected && !opt.correct;
+                    
+                    let border = `2px solid ${c.border}`;
+                    let bg = c.panel;
+                    let iconColor = c.border;
+                    
+                    if (showCorrect) { border = `2px solid ${c.correctText}`; bg = c.correctBg; iconColor = c.correctText; }
+                    else if (showIncorrect) { border = `2px solid ${c.errorText}`; bg = c.errorBg; iconColor = c.errorText; }
+                    else if (isSelected && !showCorrect && !showIncorrect) { border = `2px solid ${c.primary}`; bg = c.primaryHover; iconColor = c.primary; }
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleOptionClick(idx)}
+                        className="animate-slide-up"
+                        style={{
+                          animationDelay: `${idx * 0.05}s`,
+                          animationFillMode: 'both',
+                          textAlign: 'left',
+                          padding: '24px',
+                          backgroundColor: bg,
+                          border: border,
+                          borderRadius: '16px',
+                          color: c.text,
+                          fontSize: '17px',
+                          lineHeight: 1.5,
+                          fontWeight: isSelected ? 600 : 500,
+                          cursor: lessonState === 'answered' ? 'default' : 'pointer',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '20px',
+                          boxShadow: isSelected && !showCorrect && !showIncorrect ? `0 8px 24px ${c.primary}33` : 'none',
+                          transform: isSelected && lessonState !== 'answered' ? 'scale(1.01)' : 'scale(1)'
+                        }}
+                        onMouseOver={(e) => { 
+                          if(lessonState !== 'answered' && !isSelected) {
+                            e.currentTarget.style.borderColor = c.primary;
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.05)`;
+                          }
+                        }}
+                        onMouseOut={(e) => { 
+                          if(lessonState !== 'answered' && !isSelected) {
+                            e.currentTarget.style.borderColor = c.border;
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }
+                        }}
+                      >
+                        <div style={{ 
+                          minWidth: '28px', height: '28px', borderRadius: '50%', border: `2px solid ${iconColor}`, 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          backgroundColor: (showCorrect || showIncorrect || isSelected) ? iconColor : 'transparent',
+                          transition: 'all 0.3s',
+                          marginTop: '2px'
+                        }}>
+                          {(showCorrect || showIncorrect || isSelected) && <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#fff' }} />}
+                        </div>
+                        <span style={{ flex: 1 }}>{opt.text}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {lessonState === 'answered' && (
+                  <div className="animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both', marginTop: '40px', padding: '32px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '16px', color: c.text, fontSize: '17px', lineHeight: '1.7', boxShadow: `0 10px 30px rgba(0,0,0,0.1)` }}>
+                    <div style={{ fontWeight: 800, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px', color: lesson.options[selectedOption].correct ? c.correctText : c.errorText }}>
+                      {lesson.options[selectedOption].correct ? <><CheckCircle2 size={22} /> Excellent</> : <><Target size={22} /> Not quite</>}
+                    </div>
+                    {lesson.options[selectedOption].explanation}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Footer actions */}
-        <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: `1px solid ${c.border}`, display: 'flex', justifyContent: 'flex-end' }}>
-          {(lesson.type === 'sprint' ? !!sprintResult : (lesson.type !== 'mcq' || lessonState === 'answered')) ? (
+        {/* Floating Action Button for Next */}
+        <div 
+          style={{ 
+            position: 'absolute', bottom: 0, left: 0, right: 0, 
+            padding: '32px 24px', 
+            background: `linear-gradient(to top, ${c.bg} 60%, transparent 100%)`, 
+            display: 'flex', justifyContent: 'center',
+            pointerEvents: 'none',
+            opacity: ((lesson.type === 'sprint' ? !!sprintResult : (lesson.type !== 'mcq' || lessonState === 'answered'))) ? 1 : 0,
+            transform: ((lesson.type === 'sprint' ? !!sprintResult : (lesson.type !== 'mcq' || lessonState === 'answered'))) ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 20
+          }}
+        >
+          <div style={{ maxWidth: '760px', width: '100%', display: 'flex', justifyContent: 'flex-end', pointerEvents: 'auto' }}>
             <button
               onClick={handleNextLesson}
-              style={{ padding: '10px 24px', backgroundColor: c.primary, color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 40px', backgroundColor: c.primary, color: '#fff', border: 'none', borderRadius: '40px', fontSize: '18px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.3s', boxShadow: `0 10px 25px ${c.primary}66` }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 15px 35px ${c.primary}88`; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 10px 25px ${c.primary}66`; }}
             >
-              {currentLessonIndex === selectedSkill.lessons.length - 1 ? 'Finish Skill' : 'Continue'}
+              {currentLessonIndex === selectedSkill.lessons.length - 1 ? 'Complete Skill' : 'Continue'} <ChevronRight size={22} />
             </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBrowser = () => {
+    // Determine gradient based on domain index
+    const gradients = [
+      `linear-gradient(135deg, ${c.panel} 0%, rgba(139, 92, 246, 0.15) 100%)`,
+      `linear-gradient(135deg, ${c.panel} 0%, rgba(16, 185, 129, 0.15) 100%)`,
+      `linear-gradient(135deg, ${c.panel} 0%, rgba(59, 130, 246, 0.15) 100%)`,
+      `linear-gradient(135deg, ${c.panel} 0%, rgba(245, 158, 11, 0.15) 100%)`,
+    ];
+    const heroBg = gradients[selectedDomainIndex % gradients.length];
+
+    return (
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Sidebar */}
+        <div style={{ width: '300px', backgroundColor: c.panel, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+          <div style={{ padding: '40px 24px 24px 24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: c.text, margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ padding: '8px', backgroundColor: c.primaryHover, borderRadius: '8px', color: c.primary }}><BookOpen size={24} /></div>
+              PM Academy
+            </h2>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 32px 16px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.textDim, marginBottom: '16px', paddingLeft: '8px' }}>
+              Curriculum
+            </div>
+            {ACADEMY_DOMAINS.map((dom, idx) => {
+              const isSelected = idx === selectedDomainIndex;
+              const total = (dom.skills || []).length;
+              const done = (dom.skills || []).filter((s) => isSkillComplete(s.id)).length;
+              const pct = total ? Math.round((done / total) * 100) : 0;
+              
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedDomainIndex(idx)}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '16px', marginBottom: '8px',
+                    backgroundColor: isSelected ? c.primaryHover : 'transparent',
+                    border: 'none',
+                    borderRadius: '12px',
+                    color: isSelected ? c.primary : c.textDim,
+                    cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: '8px',
+                    position: 'relative', overflow: 'hidden'
+                  }}
+                >
+                  {isSelected && <div style={{ position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3px', backgroundColor: c.primary, borderRadius: '0 4px 4px 0' }} />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: isSelected ? 700 : 500, fontSize: '15px' }}>
+                    {IconMap[dom.lucideIcon] || <BookOpen size={18} />}
+                    {dom.title}
+                  </div>
+                  {total > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '30px' }}>
+                      <div style={{ flex: 1, height: '4px', backgroundColor: isSelected ? 'rgba(139,92,246,0.2)' : c.border, borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', backgroundColor: pct === 100 ? c.correctText : (isSelected ? c.primary : c.textDim) }} />
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: isSelected ? c.primary : c.textDim }}>{done}/{total}</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div style={{ flex: 1, backgroundColor: c.bg, overflowY: 'auto' }}>
+          {domain ? (
+            <div className="animate-fade-in" key={domain.title}>
+              {/* Hero Section */}
+              <div style={{ padding: '80px 56px', background: heroBg, borderBottom: `1px solid ${c.border}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '50%', background: `linear-gradient(90deg, transparent 0%, ${c.bg} 100%)`, opacity: 0.5 }} />
+                
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <h1 style={{ color: c.text, margin: '0 0 16px 0', fontSize: '48px', fontWeight: 800, letterSpacing: '-0.03em' }}>{domain.title}</h1>
+                  <p style={{ color: c.textDim, fontSize: '20px', margin: '0 0 40px 0', maxWidth: '600px', lineHeight: 1.6 }}>
+                    Master the core concepts of {domain.title.toLowerCase()} with interactive scenarios and real-world case breakdowns.
+                  </p>
+                  
+                  {(() => {
+                    const total = (domain.skills || []).length;
+                    const done = (domain.skills || []).filter((s) => isSkillComplete(s.id)).length;
+                    const pct = total ? Math.round((done / total) * 100) : 0;
+                    return (
+                      <div style={{ maxWidth: '440px', backgroundColor: c.glassBg, backdropFilter: 'blur(12px)', padding: '24px', borderRadius: '16px', border: `1px solid ${c.border}`, boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700, color: c.text, marginBottom: '16px' }}>
+                          <span>Domain Mastery</span>
+                          <span style={{ color: pct === 100 ? c.correctText : c.primary }}>{pct}%</span>
+                        </div>
+                        <div style={{ height: '10px', borderRadius: '5px', backgroundColor: c.panelHover, overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', backgroundColor: pct === 100 ? c.correctText : c.primary, transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                        </div>
+                        <div style={{ fontSize: '14px', color: c.textDim, marginTop: '12px', fontWeight: 500 }}>
+                          {done} of {total} skills completed
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Skills Grid */}
+              <div style={{ padding: '56px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '32px' }}>
+                  {domain.skills && domain.skills.map((skill, idx) => {
+                    const isCompleted = isSkillComplete(skill.id);
+                    return (
+                      <div 
+                        key={skill.id}
+                        className="animate-slide-up"
+                        onClick={() => handleStartSkill(skill)}
+                        style={{
+                          animationDelay: `${idx * 0.05}s`,
+                          animationFillMode: 'both',
+                          backgroundColor: c.glassBg,
+                          backdropFilter: 'blur(12px)',
+                          border: `1px solid ${isCompleted ? c.correctText + '44' : c.border}`,
+                          borderRadius: '20px',
+                          padding: '32px',
+                          cursor: skill.locked ? 'not-allowed' : 'pointer',
+                          opacity: skill.locked ? 0.6 : 1,
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          filter: skill.locked ? (dark ? 'grayscale(100%) brightness(0.8)' : 'grayscale(100%) opacity(0.7)') : 'none'
+                        }}
+                        onMouseOver={(e) => { 
+                          if(!skill.locked) { 
+                            e.currentTarget.style.transform = 'translateY(-6px)'; 
+                            e.currentTarget.style.boxShadow = `0 20px 40px ${isCompleted ? c.correctText + '22' : c.primary + '22'}`;
+                            e.currentTarget.style.borderColor = isCompleted ? c.correctText : c.primary; 
+                          } 
+                        }}
+                        onMouseOut={(e) => { 
+                          if(!skill.locked) { 
+                            e.currentTarget.style.transform = 'translateY(0)'; 
+                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.03)';
+                            e.currentTarget.style.borderColor = isCompleted ? c.correctText + '44' : c.border; 
+                          } 
+                        }}
+                      >
+                        {/* Top ribbon if completed */}
+                        {isCompleted && (
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', backgroundColor: c.correctText, boxShadow: `0 0 10px ${c.correctText}` }} />
+                        )}
+
+                        <h3 style={{ color: c.text, margin: '0 0 20px 0', fontSize: '22px', fontWeight: 800, lineHeight: 1.3 }}>{skill.title}</h3>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.textDim, fontSize: '15px', fontWeight: 500 }}>
+                            <Clock size={18} /> <span>Est. {skill.lessons?.length * 2 || 0} mins</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px' }}>
+                            {skill.locked ? (
+                              <span style={{ color: c.textDim, fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Lock size={18} /> Locked
+                              </span>
+                            ) : isCompleted ? (
+                              <span style={{ color: c.correctText, fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <CheckCircle size={18} /> Completed
+                              </span>
+                            ) : (
+                              <span style={{ color: c.primary, fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <PlayCircle size={18} /> Start
+                              </span>
+                            )}
+                            
+                            {skill.lessons?.some((l) => l.type === 'sprint') && (
+                              <span style={{ backgroundColor: c.primaryHover, color: c.primary, padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px' }}>
+                                SPRINT
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           ) : (
-            <button disabled style={{ padding: '10px 24px', backgroundColor: c.border, color: c.dim, border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold' }}>
-              Select an answer
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: c.textDim, fontSize: '18px' }}>
+              Select a domain to begin your training.
+            </div>
           )}
         </div>
       </div>
     );
   };
 
-  const renderBrowser = () => (
-    <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-      {/* Sidebar */}
-      <div style={{ width: '250px', backgroundColor: c.panel, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px', fontSize: '12px', fontWeight: 'bold', color: c.dim, letterSpacing: '1px', textTransform: 'uppercase' }}>
-          Product Domains
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {ACADEMY_DOMAINS.map((dom, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedDomainIndex(idx)}
-              style={{
-                width: '100%', textAlign: 'left', padding: '12px 20px',
-                backgroundColor: idx === selectedDomainIndex ? c.primaryHover : 'transparent',
-                borderTop: 'none', borderRight: 'none', borderBottom: 'none',
-                borderLeft: idx === selectedDomainIndex ? `3px solid ${c.primary}` : '3px solid transparent',
-                color: idx === selectedDomainIndex ? c.text : c.dim,
-                fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '12px'
-              }}
-            >
-              <span style={{ fontSize: '16px' }}>{dom.icon || '🏗️'}</span>
-              {dom.title}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div style={{ flex: 1, backgroundColor: c.bg, overflowY: 'auto', padding: '40px' }}>
-        {domain ? (
-          <div>
-            <h1 style={{ color: c.text, margin: '0 0 8px 0', fontSize: '32px' }}>{domain.title}</h1>
-            {(() => {
-              const total = (domain.skills || []).length;
-              const done = (domain.skills || []).filter((s) => isSkillComplete(s.id)).length;
-              const pct = total ? Math.round((done / total) * 100) : 0;
-              return (
-                <div style={{ margin: '0 0 32px 0', maxWidth: '460px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: c.dim, marginBottom: '6px' }}>
-                    <span>{done} of {total} skills mastered</span>
-                    <span style={{ fontWeight: 700, color: pct === 100 ? c.correctText : c.primary }}>{pct}%{pct === 100 ? ' · complete 🎓' : ''}</span>
-                  </div>
-                  <div style={{ height: '8px', borderRadius: '999px', backgroundColor: c.panel, border: `1px solid ${c.border}`, overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${c.primary}, #d946ef)`, transition: 'width 0.5s' }} />
-                  </div>
-                </div>
-              );
-            })()}
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-              {domain.skills && domain.skills.map(skill => (
-                <div 
-                  key={skill.id}
-                  onClick={() => handleStartSkill(skill)}
-                  style={{
-                    backgroundColor: c.panel,
-                    border: `1px solid ${c.border}`,
-                    borderRadius: '8px',
-                    padding: '24px',
-                    cursor: skill.locked ? 'not-allowed' : 'pointer',
-                    opacity: skill.locked ? 0.6 : 1,
-                    transition: 'transform 0.2s, border-color 0.2s',
-                  }}
-                  onMouseOver={(e) => { if(!skill.locked) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = c.primary; } }}
-                  onMouseOut={(e) => { if(!skill.locked) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = c.border; } }}
-                >
-                  <h3 style={{ color: c.text, margin: '0 0 12px 0', fontSize: '18px' }}>{skill.title}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {skill.locked ? (
-                      <span style={{ color: c.dim, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>🔒 Locked</span>
-                    ) : isSkillComplete(skill.id) ? (
-                      <span style={{ color: c.correctText, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>✓ Completed · replay anytime</span>
-                    ) : (
-                      <span style={{ color: c.correctText, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>★ Playable ({skill.lessons?.length || 0} modules)</span>
-                    )}
-                    {skill.lessons?.some((l) => l.type === 'sprint') && (
-                      <span style={{ color: c.primary, fontSize: '11px', fontWeight: 700 }}>◆ SPRINT</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div style={{ color: c.dim }}>Select a domain.</div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', backgroundColor: c.bg, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', backgroundColor: c.bg, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {selectedSkill ? renderPlayer() : renderBrowser()}
+      
+      {/* Global CSS for markdown and animations */}
+      <style>{`
+        .animate-fade-in {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-slide-up {
+          opacity: 0;
+          animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Markdown Styling */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: var(--md-color); margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 700; letter-spacing: -0.01em; }
+        .markdown-body h2 { font-size: 1.6em; border-bottom: 1px solid var(--md-border); padding-bottom: 0.3em; }
+        .markdown-body h3 { font-size: 1.3em; }
+        .markdown-body p { margin-bottom: 1.5em; }
+        .markdown-body ul, .markdown-body ol { padding-left: 1.5em; margin-bottom: 1.5em; }
+        .markdown-body li { margin-bottom: 0.6em; }
+        .markdown-body blockquote { border-left: 4px solid var(--md-link); margin: 0 0 1.5em 0; padding: 0.5em 1em; color: var(--md-color); opacity: 0.9; background-color: var(--md-code-bg); border-radius: 0 8px 8px 0; }
+        .markdown-body code { background-color: var(--md-code-bg); padding: 0.2em 0.4em; border-radius: 4px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.9em; }
+        .markdown-body pre { background-color: var(--md-code-bg); padding: 1.2em; border-radius: 12px; overflow-x: auto; margin-bottom: 1.5em; border: 1px solid var(--md-border); }
+        .markdown-body pre code { background-color: transparent; padding: 0; border-radius: 0; }
+        .markdown-body a { color: var(--md-link); text-decoration: none; font-weight: 500; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body strong { font-weight: 700; }
+      `}</style>
     </div>
   );
 }

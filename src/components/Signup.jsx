@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, Key, Mail, Compass } from 'lucide-react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../ThemeContext';
@@ -44,9 +44,25 @@ export default function Signup({ onSwitchToLogin }) {
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // AuthContext will handle the redirect via onAuthStateChanged
     } catch (err) {
       setError(err.message || 'Failed to create account');
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleSignup = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-up popup was closed. Please try again.');
+      } else {
+        setError(err.message || 'Failed to sign up with Google');
+      }
     }
     setLoading(false);
   };

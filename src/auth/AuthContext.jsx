@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 
 const AuthContext = createContext();
@@ -27,6 +27,11 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Process any pending redirects first
+    getRedirectResult(auth).catch(err => {
+      console.error("Redirect login error:", err);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
@@ -35,14 +40,27 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  const logout = async () => {
+    if (auth) {
+      await signOut(auth);
+    } else {
+      setCurrentUser(null);
+    }
+  };
+
   const value = {
     currentUser,
-    setCurrentUser // Exposed for the mock state, usually handled entirely by onAuthStateChanged
+    setCurrentUser, // Exposed for the mock state, usually handled entirely by onAuthStateChanged
+    logout
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0d1117', color: '#c9d1d9', fontFamily: 'monospace' }}>
+          <div>[ Firebase Auth ] Authenticating...</div>
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 }

@@ -308,6 +308,54 @@ const CASE_CHATS = [
   }
 ];
 
+const CASE_SHEETS = {
+  data: [{
+    name: 'Unit Economics (LTV/CAC)',
+    status: 1,
+    celldata: [
+      { r: 0, c: 0, v: { m: 'Enterprise Data Pipeline - Unit Economics', v: 'Enterprise Data Pipeline - Unit Economics', bl: 1 } },
+      { r: 2, c: 0, v: { m: 'Metric', v: 'Metric', bl: 1 } },
+      { r: 2, c: 1, v: { m: 'Current (Flat $50K)', v: 'Current (Flat $50K)', bl: 1 } },
+      { r: 2, c: 2, v: { m: 'Proposed (Usage-based)', v: 'Proposed (Usage-based)', bl: 1 } },
+      
+      { r: 3, c: 0, v: { m: 'Average Revenue per Account (ARR)', v: 'Average Revenue per Account (ARR)' } },
+      { r: 3, c: 1, v: { m: '50000', v: '50000', ct: { fa: '$#,##0', t: 'n' } } },
+      { r: 3, c: 2, v: { m: '180000', v: '180000', ct: { fa: '$#,##0', t: 'n' } } },
+      
+      { r: 4, c: 0, v: { m: 'Compute Cost per Account (COGS)', v: 'Compute Cost per Account (COGS)' } },
+      { r: 4, c: 1, v: { m: '85000', v: '85000', ct: { fa: '$#,##0', t: 'n' }, fc: '#ef4444' } },
+      { r: 4, c: 2, v: { m: '85000', v: '85000', ct: { fa: '$#,##0', t: 'n' } } },
+      
+      { r: 5, c: 0, v: { m: 'Gross Margin ($)', v: 'Gross Margin ($)', bl: 1 } },
+      { r: 5, c: 1, v: { f: '=B4-B5', m: '-35000', v: '-35000', ct: { fa: '$#,##0', t: 'n' }, fc: '#ef4444', bl: 1 } },
+      { r: 5, c: 2, v: { f: '=C4-C5', m: '95000', v: '95000', ct: { fa: '$#,##0', t: 'n' }, bl: 1 } },
+      
+      { r: 6, c: 0, v: { m: 'Gross Margin (%)', v: 'Gross Margin (%)', bl: 1 } },
+      { r: 6, c: 1, v: { f: '=B6/B4', m: '-0.7', v: '-0.7', ct: { fa: '0%', t: 'n' }, fc: '#ef4444', bl: 1 } },
+      { r: 6, c: 2, v: { f: '=C6/C4', m: '0.52', v: '0.52', ct: { fa: '0%', t: 'n' }, bl: 1 } },
+
+      { r: 8, c: 0, v: { m: 'Customer Acquisition Cost (CAC)', v: 'Customer Acquisition Cost (CAC)' } },
+      { r: 8, c: 1, v: { m: '45000', v: '45000', ct: { fa: '$#,##0', t: 'n' } } },
+      { r: 8, c: 2, v: { m: '45000', v: '45000', ct: { fa: '$#,##0', t: 'n' } } },
+
+      { r: 9, c: 0, v: { m: 'Average Lifespan (Years)', v: 'Average Lifespan (Years)' } },
+      { r: 9, c: 1, v: { m: '4', v: '4', ct: { fa: '0.0', t: 'n' } } },
+      { r: 9, c: 2, v: { m: '2.5', v: '2.5', ct: { fa: '0.0', t: 'n' } } },
+
+      { r: 10, c: 0, v: { m: 'Lifetime Value (LTV) [Margin * Lifespan]', v: 'Lifetime Value (LTV) [Margin * Lifespan]', bl: 1 } },
+      { r: 10, c: 1, v: { f: '=B6*B10', m: '-140000', v: '-140000', ct: { fa: '$#,##0', t: 'n' }, fc: '#ef4444', bl: 1 } },
+      { r: 10, c: 2, v: { f: '=C6*C10', m: '237500', v: '237500', ct: { fa: '$#,##0', t: 'n' }, bl: 1 } },
+
+      { r: 12, c: 0, v: { m: 'LTV:CAC Ratio', v: 'LTV:CAC Ratio', bl: 1 } },
+      { r: 12, c: 1, v: { f: '=B11/B9', m: '-3.1', v: '-3.1', ct: { fa: '0.0', t: 'n' }, fc: '#ef4444', bl: 1 } },
+      { r: 12, c: 2, v: { f: '=C11/C9', m: '5.27', v: '5.27', ct: { fa: '0.0', t: 'n' }, bl: 1 } },
+
+      { r: 14, c: 0, v: { m: 'Takeaway:', v: 'Takeaway:', bl: 1 } },
+      { r: 14, c: 1, v: { m: 'Currently losing $35k per year on heavy users.', v: 'Currently losing $35k per year on heavy users.' } }
+    ]
+  }]
+};
+
 export const CASE_PRICING_PIVOT = {
   meta: CASE_META,
   personas: CASE_PERSONAS,
@@ -320,4 +368,5 @@ export const CASE_PRICING_PIVOT = {
   leadership: CASE_LEADERSHIP,
   memoRubric: CASE_MEMO_RUBRIC,
   metrics: CASE_METRICS,
+  sheets: CASE_SHEETS,
 };

@@ -100,8 +100,8 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
     } else {
       setPreMaxState({ x: xPos.get(), y: yPos.get(), size });
       xPos.set(0);
-      yPos.set(0);
-      setSize({ width: window.innerWidth, height: window.innerHeight - 80 }); // Leave room for taskbar
+      yPos.set(36); // Account for OS menu bar
+      setSize({ width: window.innerWidth, height: window.innerHeight - 36 }); // Leave room for OS menu bar
       setIsMaximized(true);
     }
   };
@@ -115,7 +115,7 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
     const sh = window.innerHeight;
 
     const EDGE_THRESHOLD = 30;
-    const TOP_BAR_HEIGHT = 32;
+    const TOP_BAR_HEIGHT = 36;
     const DOCK_HEIGHT = 80;
 
     if (py < TOP_BAR_HEIGHT + EDGE_THRESHOLD) {
@@ -163,12 +163,12 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
       onDragEnd={handleDragEnd}
       style={{
         position: 'absolute',
-        top: 0,
+        top: isMaximized ? '36px' : 0,
         left: 0,
-        x: xPos,
-        y: yPos,
-        width: size.width,
-        height: size.height,
+        x: isMaximized ? 0 : xPos,
+        y: isMaximized ? 0 : yPos,
+        width: isMaximized ? '100%' : size.width,
+        height: isMaximized ? 'calc(100% - 36px)' : size.height,
         backgroundColor: bgColor,
         border: `1px solid ${borderColor}`,
         borderRadius: isMaximized ? '0px' : '16px',

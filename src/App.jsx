@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import Onboarding from './components/Onboarding';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
 function AuthRouter() {
@@ -44,15 +45,17 @@ function AuthRouter() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <CaseProvider>
-          <div className="App">
-            <AuthRouter />
-          </div>
-        </CaseProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <CaseProvider>
+            <div className="App">
+              <AuthRouter />
+            </div>
+          </CaseProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

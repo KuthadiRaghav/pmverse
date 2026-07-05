@@ -19,6 +19,7 @@ import FileExplorer from './FileExplorer';
 import Welcome, { ONBOARD_KEY } from './Welcome';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
+import { useAuth } from '../auth/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Bell, Moon, Sun, Trophy, Flame, 
@@ -49,6 +50,7 @@ export const APPS = [
 export default function Desktop() {
   const { theme, toggleTheme } = useTheme();
   const { unreadCount, unreadChatCount, rank, totalXP, toasts, dismissToast } = useCase();
+  const { currentUser, logout } = useAuth();
   const [openWindows, setOpenWindows] = useState([]);
   const [minimizedWindows, setMinimizedWindows] = useState([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -326,22 +328,6 @@ export default function Desktop() {
           </div>
           <div style={{ width: '1px', height: '16px', backgroundColor: theme === 'dark' ? '#30363d' : '#e5e7eb', margin: '0 4px' }} />
           
-          <button style={{
-            backgroundColor: '#eab308', // Yellow CTA like PostHog
-            color: '#111827',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '4px 12px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-            flexShrink: 0,
-            whiteSpace: 'nowrap'
-          }} onClick={() => alert('Start your mission!')}>
-            Get started - free
-          </button>
-
           <Search size={16} style={{ cursor: 'pointer', color: theme === 'dark' ? '#c9d1d9' : '#111827' }} onClick={() => setPaletteOpen(true)} />
           <div style={{ position: 'relative' }}>
             <div 
@@ -365,6 +351,26 @@ export default function Desktop() {
           <div onClick={toggleTheme} style={{ cursor: 'pointer', color: theme === 'dark' ? '#c9d1d9' : '#111827' }}>
             {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
           </div>
+          
+          <div style={{ position: 'relative' }}>
+            <div 
+              style={{ ...menuStyle('profile'), display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'profile' ? null : 'profile'); }}
+            >
+              <User size={14} style={{ color: theme === 'dark' ? '#c9d1d9' : '#111827' }} />
+              <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '13px', fontWeight: 600 }}>
+                {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'My Profile'}
+              </span>
+            </div>
+            {renderDropdown('profile', [
+              { label: currentUser?.email ? `Signed in as ${currentUser.email}` : 'Signed in', disabled: true },
+              'divider',
+              { label: 'Career Profile', action: () => toggleWindow('win-career') },
+              'divider',
+              { label: 'Sign Out', action: logout }
+            ], true)}
+          </div>
+
           <span style={{ color: theme === 'dark' ? '#c9d1d9' : '#111827', fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>

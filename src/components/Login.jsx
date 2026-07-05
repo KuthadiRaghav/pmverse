@@ -55,11 +55,14 @@ export default function Login({ onSwitchToSignup }) {
     }
     
     try {
-      setLoading(true);
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (err) {
-      setError(err.message || 'Failed to log in with Google');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in popup was closed. Please try again.');
+      } else {
+        setError(err.message || 'Failed to login with Google');
+      }
     }
     setLoading(false);
   };
