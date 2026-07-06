@@ -90,7 +90,13 @@ export default function Login({ onSwitchToSignup }) {
       setMessage('');
       setError('');
       setLoading(true);
-      await sendPasswordResetEmail(auth, email);
+      
+      const actionCodeSettings = {
+        url: window.location.origin, 
+        handleCodeInApp: false
+      };
+      
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setMessage('Password reset email sent! Check your inbox.');
     } catch (err) {
       setError(getFriendlyErrorMessage(err));
