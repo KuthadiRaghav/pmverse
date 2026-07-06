@@ -3,6 +3,8 @@
   <p><strong>The OS Simulator for Product Managers</strong></p>
   <p><i>Fast-track your PM career by practicing with real-world scenarios.</i></p>
   <a href="https://pmversestudio.web.app"><strong>Clock In Now</strong></a>
+  <br/><br/>
+  <img src="./src/assets/readme_hero.jpg" alt="PMverse Hero" width="100%" style="border-radius: 12px;" />
 </div>
 
 ---
