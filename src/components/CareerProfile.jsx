@@ -8,6 +8,7 @@ import {
   getStreak, getDaily, recordDaily,
 } from '../academyProgress';
 import { getApiKey, setApiKey } from '../ai';
+import { useAuth } from '../auth/AuthContext';
 
 // Career: the player's home — rank ladder, XP across cases, streak,
 // the PM Daily challenge, and profile settings (API key, export/import).
@@ -95,6 +96,8 @@ function importProfile(file) {
 export default function CareerProfile() {
   const c = useTokens();
   const { caseList, states, totalXP, rank } = useCase();
+  const { currentUser } = useAuth();
+  const playerName = currentUser?.displayName?.split(' ')[0] || 'Alex';
   const bank = useMemo(buildBank, []);
   const [dailySelected, setDailySelected] = useState(null);
   const [keyDraft, setKeyDraft] = useState(getApiKey());
@@ -135,7 +138,7 @@ export default function CareerProfile() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '18px' }}>
         <div>
-          <div style={{ fontSize: '22px', fontWeight: 800 }}>Alex — <span style={{ color: c.accent }}>{rank}</span></div>
+          <div style={{ fontSize: '22px', fontWeight: 800 }}>{playerName} — <span style={{ color: c.accent }}>{rank}</span></div>
           <div style={{ fontSize: '13px', color: c.dim, marginTop: '2px' }}>
             {totalXP} career XP{nextRank ? ` · ${nextRank[0] - totalXP} XP to ${nextRank[1]}` : ' · top of the ladder'}
           </div>

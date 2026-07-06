@@ -18,6 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useTheme } from '../ThemeContext';
+import { useAuth } from '../auth/AuthContext';
 
 const INITIAL_TASKS = {
   todo: [
@@ -125,7 +126,20 @@ function Column({ id, title, tasks, onTaskClick }) {
 
 export default function SprintBoard() {
   const { theme } = useTheme();
-  const [columns, setColumns] = useState(INITIAL_TASKS);
+  const { currentUser } = useAuth();
+  const playerName = currentUser?.displayName?.split(' ')[0] || 'Alex';
+
+  const [columns, setColumns] = useState(() => {
+    const newCols = {};
+    for (const key in INITIAL_TASKS) {
+      newCols[key] = INITIAL_TASKS[key].map(t => ({
+        ...t,
+        assignee: t.assignee.replace('Alex', playerName),
+        description: t.description.replace('Alex', playerName)
+      }));
+    }
+    return newCols;
+  });
   const [selectedTask, setSelectedTask] = useState(null);
   const [missionResult, setMissionResult] = useState(null);
 

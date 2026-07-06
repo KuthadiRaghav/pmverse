@@ -5,6 +5,8 @@ import {
 } from './engine';
 import { recordActivity } from '../academyProgress';
 import { playChime } from '../soundEngine';
+import { useAuth } from '../auth/AuthContext';
+import { useMemo } from 'react';
 
 // The Case Engine context: multi-case state (per-case persistence), the active
 // case definition, XP (per-case and cumulative), derived artifacts, real-time
@@ -41,6 +43,38 @@ function loadAllStates() {
 }
 
 export function CaseProvider({ children }) {
+  const { currentUser } = useAuth();
+  const playerName = currentUser?.displayName?.split(' ')[0] || 'Alex';
+
+  const { transformedCaseList, transformedCases } = useMemo(() => {
+    function replaceNameDeep(obj) {
+      if (typeof obj === 'string') {
+        return obj.replace(/\bAlex( Morgan)?\b/g, (match) => {
+          if (match === 'Alex Morgan') return currentUser?.displayName || 'Alex Morgan';
+          return playerName;
+        });
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(item => replaceNameDeep(item));
+      }
+      if (obj !== null && typeof obj === 'object') {
+        const newObj = {};
+        for (const key in obj) {
+          if (typeof obj[key] === 'function') {
+            newObj[key] = obj[key];
+          } else {
+            newObj[key] = replaceNameDeep(obj[key]);
+          }
+        }
+        return newObj;
+      }
+      return obj;
+    }
+    const tList = CASE_LIST.map(c => replaceNameDeep(c));
+    const tCases = Object.fromEntries(tList.map(c => [c.meta.id, c]));
+    return { transformedCaseList: tList, transformedCases: tCases };
+  }, [playerName, currentUser?.displayName]);
+
   const [caseId, setCaseId] = useState(() => {
     try {
       const saved = localStorage.getItem(ACTIVE_KEY);
@@ -51,7 +85,7 @@ export function CaseProvider({ children }) {
   const [now, setNow] = useState(Date.now());
   const [toasts, setToasts] = useState([]);
 
-  const caseDef = CASES[caseId];
+  const caseDef = transformedCases[caseId] || transformedCases[DEFAULT_CASE_ID];
   const state = states[caseId];
 
   // Drip clock — cheap 5s tick so delayed messages surface without interaction
@@ -122,23 +156,23 @@ export function CaseProvider({ children }) {
   // ----- XP / rank / artifacts -----
   const xp = computeXP(caseDef, state);
   const caseTotal = xpTotal(xp);
-  const totalXP = CASE_LIST.reduce(
+  const totalXP = transformedCaseList.reduce(
     (sum, c) => sum + xpTotal(computeXP(c, states[c.meta.id])), 0
   );
   const rank = rankFor(totalXP);
-  const artifacts = CASE_LIST
+  const artifacts = transformedCaseList
     .map((c) => caseReport(c, states[c.meta.id]))
     .filter(Boolean);
 
-  const companyHealth = computeCompanyHealth(CASE_LIST, states);
+  const companyHealth = computeCompanyHealth(transformedCaseList, states);
 
   // ----- progression gates: case N unlocks when case N-1 is decided.
   // A case you've already started or finished never re-locks (e.g. after
   // replaying an earlier case).
-  const unlockedCaseIds = CASE_LIST
+  const unlockedCaseIds = transformedCaseList
     .filter((c, i) =>
       i === 0 ||
-      !!states[CASE_LIST[i - 1].meta.id].decision ||
+      !!states[transformedCaseList[i - 1].meta.id].decision ||
       !!states[c.meta.id].decision ||
       states[c.meta.id].stage !== 'arrival'
     )
@@ -146,7 +180,7 @@ export function CaseProvider({ children }) {
 
   // ----- actions -----
   const switchCase = (id) => {
-    if (CASES[id] && unlockedCaseIds.includes(id)) setCaseId(id);
+    if (transformedCases[id] && unlockedCaseIds.includes(id)) setCaseId(id);
   };
 
   const acceptCase = () => {
@@ -227,7 +261,7 @@ export function CaseProvider({ children }) {
     window.dispatchEvent(new CustomEvent('pmverse:open-app', { detail: appId }));
 
   const value = {
-    caseDef, caseId, caseList: CASE_LIST, states, unlockedCaseIds,
+    caseDef, caseId, caseList: transformedCaseList, states, unlockedCaseIds,
     state, visibleMessages, unreadCount, unreadChatCount, visibleChats,
     xp, caseTotal, totalXP, rank, artifacts, companyHealth,
     toasts, dismissToast,

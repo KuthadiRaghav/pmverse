@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, Key, Mail, Compass, Eye, EyeOff } from 'lucide-react';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../ThemeContext';
@@ -13,6 +13,7 @@ import loginBgWaves from '../assets/login_bg_waves.jpg';
 export default function Signup({ onSwitchToLogin }) {
   const { theme } = useTheme();
   const { setCurrentUser } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -48,13 +49,16 @@ export default function Signup({ onSwitchToLogin }) {
     
     if (!auth) {
       localStorage.setItem('pmverse_onboarded', 'true');
-      setCurrentUser({ uid: 'mock-uid', email });
+      setCurrentUser({ uid: 'mock-uid', email, displayName: name });
       setLoading(false);
       return;
     }
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, { displayName: name });
+      }
       // Send verification email
       await sendEmailVerification(userCredential.user);
     } catch (err) {
@@ -215,6 +219,33 @@ export default function Signup({ onSwitchToLogin }) {
           )}
 
           <form onSubmit={handleSignup} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>Full name</label>
+              <div style={{ position: 'relative' }}>
+                <UserPlus size={18} color={secondaryText} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Alex Morgan"
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    padding: '12px 12px 12px 42px',
+                    backgroundColor: inputBg,
+                    border: `1px solid ${borderColor}`,
+                    borderRadius: '8px',
+                    color: textColor,
+                    fontSize: '15px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = brandPurple}
+                  onBlur={(e) => e.target.style.borderColor = borderColor}
+                  required
+                />
+              </div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>Email address</label>
               <div style={{ position: 'relative' }}>

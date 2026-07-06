@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTokens, ACCENT } from '../theme';
 import { useCase } from '../case/CaseContext';
+import { useAuth } from '../auth/AuthContext';
 import { APPS } from './Desktop';
 import { 
   Home, Mail, MessageSquare, GraduationCap, LineChart, 
@@ -11,6 +12,7 @@ import {
 export default function Sidebar({ activeWindows, onAppClick, minimizeAll }) {
   const t = useTokens();
   const { caseDef, unreadCount, unreadChatCount } = useCase();
+  const { currentUser } = useAuth();
   const isDark = t.bg === '#0d1117';
 
   // The design shows specific navigation. We'll map our APPS to icons.
@@ -154,10 +156,10 @@ export default function Sidebar({ activeWindows, onAppClick, minimizeAll }) {
             backgroundColor: '#d1d5db', overflow: 'hidden'
           }}>
             {/* DiceBear notionists avatar */}
-            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Alex&backgroundColor=transparent" alt="Alex" style={{ width: '100%', height: '100%' }} />
+            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${currentUser?.displayName?.split(' ')[0] || 'Alex'}&backgroundColor=transparent`} alt="Avatar" style={{ width: '100%', height: '100%' }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: t.text }}>Alex Morgan</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: t.text }}>{currentUser?.displayName || 'Alex Morgan'}</div>
             <div style={{ fontSize: '11px', color: t.dim }}>Associate PM</div>
           </div>
           <ChevronDown size={16} color={t.dim} />

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTokens, ACCENT } from '../theme';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
+import { useAuth } from '../auth/AuthContext';
 import { interviewedIds } from '../case/engine';
 import { getStreak, completedSkills } from '../academyProgress';
 import { 
@@ -102,6 +103,7 @@ export default function HomeSurface() {
     caseDef, state, unreadCount, unreadChatCount,
     rank, totalXP, openApp, caseList, states,
   } = useCase();
+  const { currentUser } = useAuth();
   const clock = useClock();
   const streak = getStreak();
   const skillsDone = completedSkills().length;
@@ -173,7 +175,7 @@ export default function HomeSurface() {
         {/* Greeting */}
         <motion.div variants={CHILD} style={{ marginBottom: '32px', marginTop: '16px' }}>
           <div style={{ fontSize: '28px', fontWeight: 800, color: t.text, letterSpacing: '-0.5px' }}>
-            {timeGreeting(clock.getHours())}, Alex.
+            {timeGreeting(clock.getHours())}, {currentUser?.displayName?.split(' ')[0] || 'Alex'}.
           </div>
           <div style={{ fontSize: '15px', color: t.dim, marginTop: '8px', fontWeight: 500 }}>
             {decided
