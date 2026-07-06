@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LogIn, Key, Mail, Compass, Eye, EyeOff } from 'lucide-react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../ThemeContext';
@@ -16,6 +16,7 @@ export default function Login({ onSwitchToSignup }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -68,6 +69,29 @@ export default function Login({ onSwitchToSignup }) {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+    } catch (err) {
+      setError(getFriendlyErrorMessage(err));
+    }
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first to reset your password.');
+      return;
+    }
+    
+    if (!auth) {
+      setError('Firebase is not configured.');
+      return;
+    }
+
+    try {
+      setMessage('');
+      setError('');
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+      setMessage('Password reset email sent! Check your inbox.');
     } catch (err) {
       setError(getFriendlyErrorMessage(err));
     }
@@ -207,6 +231,18 @@ export default function Login({ onSwitchToSignup }) {
             </div>
           )}
 
+          {message && (
+            <div style={{
+              width: '100%', padding: '12px', backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', borderRadius: '8px',
+              fontSize: '13px', marginBottom: '24px', boxSizing: 'border-box',
+              display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+              <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>✓</div>
+              {message}
+            </div>
+          )}
+
           <form onSubmit={handleEmailLogin} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>Email address</label>
@@ -238,7 +274,10 @@ export default function Login({ onSwitchToSignup }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>Password</label>
-                <span style={{ fontSize: '13px', color: brandPurple, cursor: 'pointer', fontWeight: 500 }}>
+                <span 
+                  onClick={handleForgotPassword}
+                  style={{ fontSize: '13px', color: brandPurple, cursor: 'pointer', fontWeight: 500 }}
+                >
                   Forgot password?
                 </span>
               </div>
