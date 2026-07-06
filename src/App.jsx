@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import Onboarding from './components/Onboarding';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import VerifyEmail from './components/VerifyEmail';
 import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
@@ -51,7 +52,13 @@ function AuthRouter() {
     return <Login onSwitchToSignup={() => setShowSignup(true)} />;
   }
 
-  // User is logged in, but hasn't seen the intro onboarding
+  // User is logged in, but their email is not verified (and it's not a mock user)
+  if (!currentUser.emailVerified && currentUser.uid !== 'mock-uid') {
+    // Note: Google sign-ins automatically have emailVerified = true
+    return <VerifyEmail />;
+  }
+
+  // User is logged in and verified, but hasn't seen the intro onboarding
   if (!onboarded) {
     return (
       <Onboarding onComplete={() => {

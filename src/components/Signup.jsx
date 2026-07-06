@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, Key, Mail, Compass } from 'lucide-react';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../ThemeContext';
@@ -43,7 +43,9 @@ export default function Signup({ onSwitchToLogin }) {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Send verification email
+      await sendEmailVerification(userCredential.user);
     } catch (err) {
       setError(err.message || 'Failed to create account');
     }
