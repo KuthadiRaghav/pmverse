@@ -3,6 +3,7 @@ import { useTokens, ACCENT } from '../theme';
 import { useCase } from '../case/CaseContext';
 import { useAuth } from '../auth/AuthContext';
 import { CheckCircle2, Play, BookOpen, Terminal, Database, MessageSquare, ListTodo, Map } from 'lucide-react';
+import heroImage from '../assets/readme_hero.jpg';
 
 export const ONBOARD_KEY = 'pmverse_onboarded_v1';
 
@@ -42,7 +43,7 @@ export default function Readme() {
         {/* Header Section */}
         <div style={{ marginBottom: '32px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
-            NovaOS User Guide
+            PMverse OS User Guide
           </h1>
           <p style={{ fontSize: '16px', color: t.dim, lineHeight: 1.6, margin: 0 }}>
             Welcome to PMverse. This operating system is your virtual workspace for navigating complex product challenges. Before you clock in, review this manual to understand your toolset and the core workflow.
@@ -63,6 +64,27 @@ export default function Readme() {
           >
             <Play size={16} fill="currentColor" /> Clock in — Open NovaMail
           </button>
+          
+          <button 
+            onClick={() => openApp('win-drive')}
+            style={{
+              padding: '12px 24px', borderRadius: '8px', 
+              border: `1px solid ${t.border}`, background: 'transparent', color: t.text,
+              fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px'
+            }}
+          >
+            <BookOpen size={16} /> Open Company Drive
+          </button>
+        </div>
+
+        {/* Hero Image */}
+        <div style={{
+          width: '100%', borderRadius: '16px', overflow: 'hidden',
+          border: `1px solid ${t.border}`, marginBottom: '40px',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.1)'
+        }}>
+          <img src={heroImage} alt="PMverse Hero" style={{ width: '100%', display: 'block' }} />
         </div>
 
         <div style={{ height: '1px', backgroundColor: t.border, marginBottom: '40px' }} />
