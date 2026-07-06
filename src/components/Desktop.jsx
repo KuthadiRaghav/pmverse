@@ -529,7 +529,7 @@ export default function Desktop() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 1, duration: 0.5 }}
           style={{
-            position: 'absolute', top: '60px', right: '20px', width: '280px',
+            position: 'absolute', bottom: '24px', right: '120px', width: '280px',
             backgroundColor: theme === 'dark' ? 'rgba(22, 27, 34, 0.85)' : 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(20px)',
             border: `1px solid ${theme === 'dark' ? '#30363d' : '#e5e7eb'}`,
@@ -737,7 +737,7 @@ export default function Desktop() {
       {/* The Dock has been removed in favor of edge Desktop Icons */}
 
       {/* Notification toasts */}
-      <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 400, display: 'flex', flexDirection: 'column', gap: '10px', width: '320px' }}>
+      <div style={{ position: 'fixed', top: '48px', left: '50%', transform: 'translateX(-50%)', zIndex: 400, display: 'flex', flexDirection: 'column', gap: '10px', width: '320px' }}>
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -770,7 +770,7 @@ export default function Desktop() {
           </div>
         ))}
       </div>
-      <style>{`@keyframes pmverse-toast-in { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
+      <style>{`@keyframes pmverse-toast-in { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
 
       {/* Cmd+K app switcher */}
       {paletteOpen && (
