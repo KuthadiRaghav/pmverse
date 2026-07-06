@@ -41,6 +41,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = async () => {
+    localStorage.removeItem('pmverse_onboarded');
     if (auth) {
       await signOut(auth);
     } else {

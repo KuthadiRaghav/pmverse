@@ -15,12 +15,34 @@ function AuthRouter() {
   const [showSignup, setShowSignup] = useState(false);
 
   useEffect(() => {
-    // We still use local storage to remember if they've seen the intro text
-    const hasOnboarded = localStorage.getItem('pmverse_onboarded');
-    if (!hasOnboarded) {
-      setOnboarded(false);
+    if (currentUser) {
+      const hasOnboardedLocal = localStorage.getItem('pmverse_onboarded');
+      
+      // If we already completed it locally, we're good
+      if (hasOnboardedLocal === 'true') {
+        setOnboarded(true);
+        return;
+      }
+
+      // Check if it's a new user based on Firebase metadata
+      const creationTime = currentUser.metadata?.creationTime;
+      const lastSignInTime = currentUser.metadata?.lastSignInTime;
+      
+      // For mock users, they are always "new" unless local storage says otherwise
+      const isMockUser = currentUser.uid === 'mock-uid';
+      
+      // If creation time is very close to last sign in time, they are a new user
+      const isNewUser = isMockUser || creationTime === lastSignInTime;
+
+      if (isNewUser) {
+        setOnboarded(false);
+      } else {
+        // If they are an existing user who just logged in on a new device, skip onboarding
+        setOnboarded(true);
+        localStorage.setItem('pmverse_onboarded', 'true');
+      }
     }
-  }, []);
+  }, [currentUser]);
 
   if (!currentUser) {
     if (showSignup) {
