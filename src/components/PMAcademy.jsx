@@ -140,49 +140,158 @@ export default function PMAcademy() {
 
   const renderPlayer = () => {
     const lesson = selectedSkill.lessons[currentLessonIndex];
+    const isLastLesson = currentLessonIndex === selectedSkill.lessons.length - 1;
+    const progressPct = Math.round(((currentLessonIndex) / selectedSkill.lessons.length) * 100);
+
+    const handleNext = () => {
+      // If mcq and not answered, don't allow next. If sprint and not submitted, don't allow next.
+      if (lesson.type === 'mcq' && lessonState !== 'answered') return;
+      if (lesson.type === 'sprint' && !sprintResult) return;
+
+      if (isLastLesson) {
+        playSuccess();
+        markSkillComplete(selectedSkill.id);
+        setSelectedSkill(null);
+      } else {
+        playPop();
+        const nextIdx = currentLessonIndex + 1;
+        setCurrentLessonIndex(nextIdx);
+        setLessonState(selectedSkill.lessons[nextIdx].type === 'mcq' ? 'mcq' : 'reading');
+        setSelectedOption(null);
+        setSprintAnswers([]);
+        setSprintResult(null);
+      }
+    };
+    
+    const handlePrev = () => {
+      if (currentLessonIndex > 0) {
+        playPop();
+        const prevIdx = currentLessonIndex - 1;
+        setCurrentLessonIndex(prevIdx);
+        setLessonState(selectedSkill.lessons[prevIdx].type === 'mcq' ? 'mcq' : 'reading');
+        setSelectedOption(null);
+        setSprintAnswers([]);
+        setSprintResult(null);
+      }
+    };
+
+    const isNextDisabled = (lesson.type === 'mcq' && lessonState !== 'answered') || 
+                           (lesson.type === 'sprint' && !sprintResult);
 
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, backgroundColor: c.bg, position: 'relative' }}>
+      <div style={{ flex: 1, display: 'flex', backgroundColor: c.bg, minHeight: 0, overflow: 'hidden' }}>
         
-        {/* Top Navigation Bar - Premium Progress Line */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', backgroundColor: c.bg, zIndex: 10 }}>
-          <button 
-            onClick={() => setSelectedSkill(null)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: c.textDim, cursor: 'pointer', fontSize: '14px', fontWeight: 600, padding: 0, transition: 'color 0.2s' }}
-            onMouseOver={(e) => e.currentTarget.style.color = c.text}
-            onMouseOut={(e) => e.currentTarget.style.color = c.textDim}
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
+        {/* LEFT SIDEBAR: Nav & Vertical Stepper */}
+        <div style={{ width: '280px', backgroundColor: c.bg, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', padding: '32px 24px', overflowY: 'auto' }}>
           
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '6px', padding: '0 40px' }}>
-            {selectedSkill.lessons.map((_, idx) => (
-              <div 
-                key={idx} 
-                style={{ 
-                  flex: 1, maxWidth: '60px', height: '6px', borderRadius: '4px',
-                  backgroundColor: idx < currentLessonIndex ? c.primary : idx === currentLessonIndex ? c.primary : c.border,
-                  opacity: idx <= currentLessonIndex ? 1 : (dark ? 0.3 : 0.6),
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: idx === currentLessonIndex ? `0 0 10px ${c.primary}66` : 'none'
-                }}
-              />
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', color: c.text, fontWeight: 800, fontSize: '18px' }}>
+            <div style={{ padding: '6px', backgroundColor: c.primary, borderRadius: '8px', color: '#fff' }}><BookOpen size={20} /></div>
+            PM Academy
           </div>
 
-          <div style={{ color: c.textDim, fontSize: '14px', fontWeight: 600, width: '70px', textAlign: 'right' }}>
-            {currentLessonIndex + 1} <span style={{ opacity: 0.5 }}>/ {selectedSkill.lessons.length}</span>
+          <button onClick={() => setSelectedSkill(null)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: c.panel, border: 'none', borderRadius: '8px', color: c.textDim, fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginBottom: '32px', alignSelf: 'flex-start' }}>
+            <ArrowLeft size={16} /> Back to Modules
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: selectedSkill.color || c.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: `0 4px 12px ${(selectedSkill.color || c.primary)}66` }}>
+               {selectedSkill.icon ? (IconMap[selectedSkill.icon] || <Zap size={20} />) : <Zap size={20} />}
+            </div>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: c.text }}>{selectedSkill.title}</div>
+              <div style={{ fontSize: '12px', color: selectedSkill.color || c.primary, fontWeight: 600 }}>{selectedSkill.difficulty || 'Module'}</div>
+            </div>
           </div>
+
+          {/* Vertical Stepper */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0', position: 'relative', marginBottom: '40px', marginLeft: '12px' }}>
+            {selectedSkill.lessons.map((l, idx) => {
+              const isActive = idx === currentLessonIndex;
+              const isPast = idx < currentLessonIndex;
+              
+              return (
+                <div key={idx} style={{ display: 'flex', gap: '16px', position: 'relative', minHeight: '60px' }}>
+                  {/* Vertical Line */}
+                  {idx < selectedSkill.lessons.length - 1 && (
+                    <div style={{ position: 'absolute', left: '11px', top: '24px', bottom: '-8px', width: '2px', backgroundColor: isPast ? c.primary : c.border }} />
+                  )}
+                  
+                  {/* Circle */}
+                  <div style={{ 
+                    width: '24px', height: '24px', borderRadius: '12px', 
+                    backgroundColor: isActive ? c.primary : (isPast ? c.primaryHover : c.panel), 
+                    border: `1px solid ${isActive ? c.primary : (isPast ? c.primary : c.border)}`, 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    fontSize: '11px', fontWeight: 700, 
+                    color: isActive ? '#fff' : (isPast ? c.primary : c.textDim),
+                    zIndex: 1, marginTop: '4px'
+                  }}>
+                    {isPast ? <CheckCircle2 size={14} /> : (idx + 1)}
+                  </div>
+                  
+                  {/* Text */}
+                  <div style={{ paddingTop: '4px', paddingBottom: '24px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: isActive ? 700 : 600, color: isActive ? c.primary : c.text, marginBottom: '4px' }}>{l.type === 'mcq' ? 'Knowledge Check' : l.type === 'sprint' ? 'Sprint' : 'Lesson'}</div>
+                    <div style={{ fontSize: '12px', color: c.textDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>{l.title || (l.prompt ? l.prompt.split(' ').slice(0,4).join(' ') + '...' : '')}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Progress Card */}
+          <div style={{ padding: '16px', borderRadius: '12px', border: `1px solid ${c.border}`, backgroundColor: c.panel, marginBottom: '24px', marginTop: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: c.text }}>Your Progress</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: c.primary }}>{progressPct}%</span>
+            </div>
+            <div style={{ height: '6px', borderRadius: '3px', backgroundColor: c.panelHover, marginBottom: '12px', overflow: 'hidden' }}>
+              <div style={{ width: `${progressPct}%`, height: '100%', backgroundColor: c.primary, transition: 'width 0.3s' }} />
+            </div>
+            <div style={{ fontSize: '12px', color: c.textDim }}>{currentLessonIndex} of {selectedSkill.lessons.length} sections completed</div>
+          </div>
+          
         </div>
 
-        {/* Content Area */}
-        <div id="academy-scroll-container" style={{ flex: 1, overflowY: 'auto', padding: '40px 24px 120px 24px' }}>
-          <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+        {/* CENTER CONTENT: Main Workspace */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', backgroundColor: c.bg }}>
+          
+          {/* Top Bar (Horizontal segments) */}
+          <div style={{ padding: '24px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${c.border}` }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, maxWidth: '400px' }}>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {selectedSkill.lessons.map((_, idx) => (
+                  <div key={idx} style={{ height: '6px', borderRadius: '3px', flex: 1, backgroundColor: idx <= currentLessonIndex ? c.primary : c.panelHover }} />
+                ))}
+              </div>
+              <div style={{ fontSize: '12px', color: c.textDim, fontWeight: 500 }}>Step {currentLessonIndex + 1} of {selectedSkill.lessons.length}</div>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span style={{ fontSize: '14px', color: c.textDim, fontWeight: 600 }}>{currentLessonIndex + 1} / {selectedSkill.lessons.length}</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={handlePrev} disabled={currentLessonIndex === 0} style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${c.border}`, backgroundColor: currentLessonIndex === 0 ? c.panelHover : c.panel, color: currentLessonIndex === 0 ? c.border : c.text, cursor: currentLessonIndex === 0 ? 'not-allowed' : 'pointer' }}>
+                  <ArrowLeft size={16} />
+                </button>
+                <button onClick={handleNext} disabled={isNextDisabled} style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${c.border}`, backgroundColor: c.panel, color: isNextDisabled ? c.border : c.primary, cursor: isNextDisabled ? 'not-allowed' : 'pointer' }}>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div style={{ flex: 1, padding: '40px 60px 120px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+            
+            <div style={{ display: 'inline-flex', alignItems: 'center', padding: '6px 12px', backgroundColor: `${c.primary}15`, color: c.primary, borderRadius: '20px', fontSize: '13px', fontWeight: 600, marginBottom: '24px' }}>
+              {lesson.type === 'mcq' ? 'Knowledge Check' : lesson.type === 'sprint' ? 'Design Sprint' : lesson.type === 'video' ? 'Video Lesson' : 'Concept Lesson'}
+            </div>
+
             {lesson.type === 'video' ? (
               <div className="animate-slide-up">
-                <h1 style={{ color: c.text, fontSize: '36px', marginBottom: '12px', fontWeight: '800', letterSpacing: '-0.03em' }}>{lesson.title}</h1>
+                <h1 style={{ fontSize: '40px', fontWeight: 800, color: c.text, margin: '0 0 24px 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{lesson.title}</h1>
                 <div style={{ color: c.textDim, fontSize: '18px', marginBottom: '40px', lineHeight: 1.6 }}>{lesson.description}</div>
-                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
                   <iframe 
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
                     src={lesson.url} 
@@ -194,20 +303,17 @@ export default function PMAcademy() {
               </div>
             ) : lesson.type === 'sprint' ? (
               <div className="animate-slide-up">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.primary, fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '16px' }}>
-                  <Zap size={18} /> Design Sprint
-                </div>
-                <h1 style={{ color: c.text, fontSize: '36px', marginBottom: '32px', fontWeight: '800', letterSpacing: '-0.03em' }}>{lesson.title}</h1>
+                <h1 style={{ fontSize: '40px', fontWeight: 800, color: c.text, margin: '0 0 24px 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{lesson.title}</h1>
                 
-                <div style={{ color: c.text, fontSize: '17px', lineHeight: '1.8', marginBottom: '40px', padding: '32px', backgroundColor: c.panel, borderRadius: '16px', border: `1px solid ${c.border}`, boxShadow: `0 4px 20px ${c.border}11` }}>
+                <div className="markdown-body" style={{ color: c.text, fontSize: '16px', lineHeight: '1.8', marginBottom: '40px', padding: '24px', backgroundColor: c.panelHover, borderRadius: '12px', border: `1px solid ${c.border}`, '--md-color': c.text, '--md-link': c.primary, '--md-code-bg': c.panel, '--md-border': c.border }}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{lesson.brief}</ReactMarkdown>
                 </div>
 
                 {lesson.questions.map((question, i) => {
                   const qResult = sprintResult?.perQuestion[i];
                   return (
-                    <div key={i} style={{ marginBottom: '32px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: c.text, marginBottom: '12px' }}>
+                    <div key={i} style={{ marginBottom: '40px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: 700, color: c.text, marginBottom: '12px' }}>
                         {i + 1}. {question.q}
                       </div>
                       {question.hint && <div style={{ fontSize: '15px', color: c.textDim, marginBottom: '16px' }}>{question.hint}</div>}
@@ -219,26 +325,29 @@ export default function PMAcademy() {
                           setSprintAnswers(next);
                         }}
                         disabled={!!sprintResult}
-                        placeholder="Type your answer here..."
+                        placeholder="Draft your response here..."
                         style={{
                           width: '100%', minHeight: '140px', resize: 'vertical', boxSizing: 'border-box',
-                          backgroundColor: c.bg, color: c.text, border: `2px solid ${sprintAnswers[i] ? c.primary : c.border}`,
-                          borderRadius: '12px', padding: '20px', fontSize: '16px', lineHeight: 1.7,
+                          backgroundColor: c.bg, color: c.text, border: `1px solid ${sprintAnswers[i] ? c.primary : c.border}`,
+                          borderRadius: '12px', padding: '20px', fontSize: '15px', lineHeight: 1.6,
                           fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.3s, box-shadow 0.3s',
-                          boxShadow: sprintAnswers[i] && !sprintResult ? `0 0 0 4px ${c.primaryHover}` : 'none',
-                          opacity: sprintResult ? 0.75 : 1,
+                          boxShadow: sprintAnswers[i] && !sprintResult ? `0 0 0 3px ${c.primaryHover}` : 'none',
+                          opacity: sprintResult ? 0.8 : 1,
                         }}
+                        onFocus={(e) => e.target.style.borderColor = c.primary}
+                        onBlur={(e) => e.target.style.borderColor = sprintAnswers[i] ? c.primary : c.border}
                       />
                       {qResult && (
-                        <div className="animate-slide-up" style={{ marginTop: '16px', backgroundColor: c.panel, padding: '20px', borderRadius: '12px', border: `1px solid ${c.border}` }}>
+                        <div className="animate-fade-in" style={{ marginTop: '24px', backgroundColor: `${c.correctText}10`, padding: '24px', borderRadius: '12px', border: `1px solid ${c.correctText}40` }}>
+                          <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: 700, color: c.text }}>Evaluation</h4>
                           {qResult.hits.map((h) => (
-                            <div key={h} style={{ fontSize: '15px', color: c.correctText, padding: '6px 0', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle2 size={18} /> {h}</div>
+                            <div key={h} style={{ fontSize: '15px', color: c.correctText, padding: '4px 0', display: 'flex', alignItems: 'center', gap: '12px' }}><CheckCircle2 size={16} /> {h}</div>
                           ))}
                           {qResult.misses.map((m) => (
-                            <div key={m} style={{ fontSize: '15px', color: c.errorText, padding: '6px 0', display: 'flex', alignItems: 'center', gap: '12px' }}><Target size={18} /> Missing: {m}</div>
+                            <div key={m} style={{ fontSize: '15px', color: c.errorText, padding: '4px 0', display: 'flex', alignItems: 'center', gap: '12px' }}><Target size={16} /> Missing: {m}</div>
                           ))}
-                          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: `1px solid ${c.border}`, fontSize: '15px', color: c.text, lineHeight: 1.7 }}>
-                            <strong style={{ color: c.primary, display: 'block', marginBottom: '8px' }}>Model Answer:</strong>{question.model}
+                          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: `1px solid ${c.correctText}20`, fontSize: '15px', color: c.text, lineHeight: 1.6 }}>
+                            <strong style={{ display: 'block', marginBottom: '8px' }}>Model Approach:</strong>{question.model}
                           </div>
                         </div>
                       )}
@@ -251,24 +360,26 @@ export default function PMAcademy() {
                     onClick={() => handleSprintSubmit(lesson)}
                     disabled={!sprintAnswers.some((a) => (a || '').trim())}
                     style={{
-                      width: '100%', padding: '20px', backgroundColor: c.primary, color: '#fff', border: 'none',
-                      borderRadius: '16px', fontSize: '18px', fontWeight: '800', marginTop: '24px',
+                      padding: '14px 28px', backgroundColor: c.primary, color: '#fff', border: 'none',
+                      borderRadius: '8px', fontSize: '15px', fontWeight: '600', marginTop: '24px',
                       cursor: sprintAnswers.some((a) => (a || '').trim()) ? 'pointer' : 'not-allowed',
                       opacity: sprintAnswers.some((a) => (a || '').trim()) ? 1 : 0.5,
-                      transition: 'all 0.3s'
+                      boxShadow: sprintAnswers.some((a) => (a || '').trim()) ? `0 4px 12px ${c.primary}40` : 'none',
+                      transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', gap: '8px'
                     }}
                   >
-                    Submit for Grading
+                    Submit for Grading <ChevronRight size={16} />
                   </button>
                 ) : (
-                  <div className="animate-slide-up" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '32px', backgroundColor: sprintResult.grade <= 'B' ? c.correctBg : c.errorBg, border: `2px solid ${sprintResult.grade <= 'B' ? c.correctText : c.errorText}`, borderRadius: '16px', marginTop: '24px' }}>
-                    <div style={{ fontSize: '64px', fontWeight: 900, color: sprintResult.grade <= 'B' ? c.correctText : c.errorText, lineHeight: 1 }}>{sprintResult.grade}</div>
+                  <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '24px', backgroundColor: sprintResult.grade <= 'B' ? `${c.correctText}10` : `${c.errorText}10`, border: `1px solid ${sprintResult.grade <= 'B' ? c.correctText : c.errorText}40`, borderRadius: '12px', marginTop: '32px' }}>
+                    <div style={{ fontSize: '48px', fontWeight: 900, color: sprintResult.grade <= 'B' ? c.correctText : c.errorText, lineHeight: 1 }}>{sprintResult.grade}</div>
                     <div>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: c.text, marginBottom: '6px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: 700, color: c.text, marginBottom: '6px' }}>
                         {sprintResult.points} out of {sprintResult.max} points scored
                       </div>
-                      <div style={{ fontSize: '15px', color: c.textDim }}>
-                        This sprint has been graded and saved to your Portfolio.
+                      <div style={{ fontSize: '14px', color: c.textDim }}>
+                        This sprint has been graded. You may continue.
                       </div>
                     </div>
                   </div>
@@ -276,14 +387,9 @@ export default function PMAcademy() {
               </div>
             ) : lesson.type === 'teach' || lesson.type === 'scenario' ? (
               <div className="animate-slide-up">
-                {lesson.type === 'scenario' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.primary, fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '16px' }}>
-                    <Compass size={18} /> Real-World Scenario
-                  </div>
-                )}
-                <h1 style={{ color: c.text, fontSize: '38px', marginBottom: '40px', fontWeight: '800', letterSpacing: '-0.03em', lineHeight: 1.2 }}>{lesson.title}</h1>
+                <h1 style={{ fontSize: '40px', fontWeight: 800, color: c.text, margin: '0 0 32px 0', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{lesson.title}</h1>
                 <div className="markdown-body" style={{ 
-                  color: c.text, fontSize: '18px', lineHeight: '1.8', whiteSpace: 'pre-wrap', 
+                  color: c.text, fontSize: '16px', lineHeight: '1.8', whiteSpace: 'pre-wrap', 
                   '--md-color': c.text, '--md-link': c.primary, '--md-code-bg': c.panelHover, '--md-border': c.border
                 }}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -292,21 +398,21 @@ export default function PMAcademy() {
                 </div>
                 {lesson.keyTakeaway && (
                   <div style={{ 
-                    marginTop: '56px', padding: '32px', backgroundColor: c.primaryHover, 
-                    borderLeft: `4px solid ${c.primary}`, borderRadius: '0 16px 16px 0', 
+                    marginTop: '48px', padding: '24px', backgroundColor: `${c.primary}10`, 
+                    border: `1px solid ${c.primary}30`, borderRadius: '12px', 
                     color: c.text, display: 'flex', gap: '20px', alignItems: 'flex-start' 
                   }}>
-                    <div style={{ color: c.primary, paddingTop: '4px' }}><Sparkles size={28} /></div>
+                    <div style={{ color: c.primary, paddingTop: '4px' }}><Lightbulb size={24} /></div>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: c.primary, marginBottom: '12px' }}>Key Takeaway</div>
-                      <div style={{ fontSize: '18px', lineHeight: 1.7, fontWeight: 500 }}>{lesson.keyTakeaway}</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: c.primary, marginBottom: '8px' }}>Key Takeaway</div>
+                      <div style={{ fontSize: '16px', lineHeight: 1.6 }}>{lesson.keyTakeaway}</div>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="animate-slide-up">
-                <h2 style={{ color: c.text, fontSize: '30px', marginBottom: '48px', fontWeight: '700', lineHeight: '1.4', letterSpacing: '-0.01em' }}>
+                <h2 style={{ fontSize: '32px', fontWeight: 800, color: c.text, margin: '0 0 40px 0', letterSpacing: '-0.01em', lineHeight: 1.3 }}>
                   {lesson.prompt}
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -315,13 +421,13 @@ export default function PMAcademy() {
                     const showCorrect = lessonState === 'answered' && opt.correct;
                     const showIncorrect = lessonState === 'answered' && isSelected && !opt.correct;
                     
-                    let border = `2px solid ${c.border}`;
+                    let border = `1px solid ${c.border}`;
                     let bg = c.panel;
                     let iconColor = c.border;
                     
-                    if (showCorrect) { border = `2px solid ${c.correctText}`; bg = c.correctBg; iconColor = c.correctText; }
-                    else if (showIncorrect) { border = `2px solid ${c.errorText}`; bg = c.errorBg; iconColor = c.errorText; }
-                    else if (isSelected && !showCorrect && !showIncorrect) { border = `2px solid ${c.primary}`; bg = c.primaryHover; iconColor = c.primary; }
+                    if (showCorrect) { border = `1px solid ${c.correctText}`; bg = `${c.correctText}10`; iconColor = c.correctText; }
+                    else if (showIncorrect) { border = `1px solid ${c.errorText}`; bg = `${c.errorText}10`; iconColor = c.errorText; }
+                    else if (isSelected && !showCorrect && !showIncorrect) { border = `1px solid ${c.primary}`; bg = `${c.primary}10`; iconColor = c.primary; }
 
                     return (
                       <button
@@ -335,87 +441,81 @@ export default function PMAcademy() {
                           padding: '24px',
                           backgroundColor: bg,
                           border: border,
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           color: c.text,
-                          fontSize: '17px',
-                          lineHeight: 1.5,
-                          fontWeight: isSelected ? 600 : 500,
+                          fontSize: '16px',
+                          lineHeight: 1.6,
+                          fontWeight: 500,
                           cursor: lessonState === 'answered' ? 'default' : 'pointer',
-                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          transition: 'all 0.2s',
                           display: 'flex',
                           alignItems: 'flex-start',
-                          gap: '20px',
-                          boxShadow: isSelected && !showCorrect && !showIncorrect ? `0 8px 24px ${c.primary}33` : 'none',
-                          transform: isSelected && lessonState !== 'answered' ? 'scale(1.01)' : 'scale(1)'
+                          gap: '20px'
                         }}
                         onMouseOver={(e) => { 
                           if(lessonState !== 'answered' && !isSelected) {
                             e.currentTarget.style.borderColor = c.primary;
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.05)`;
+                            e.currentTarget.style.backgroundColor = c.panelHover;
                           }
                         }}
                         onMouseOut={(e) => { 
                           if(lessonState !== 'answered' && !isSelected) {
                             e.currentTarget.style.borderColor = c.border;
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.backgroundColor = bg;
                           }
                         }}
                       >
                         <div style={{ 
-                          minWidth: '28px', height: '28px', borderRadius: '50%', border: `2px solid ${iconColor}`, 
+                          minWidth: '24px', height: '24px', borderRadius: '50%', border: `1px solid ${iconColor}`, 
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           backgroundColor: (showCorrect || showIncorrect || isSelected) ? iconColor : 'transparent',
-                          transition: 'all 0.3s',
+                          transition: 'all 0.2s',
                           marginTop: '2px'
                         }}>
-                          {(showCorrect || showIncorrect || isSelected) && <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#fff' }} />}
+                          {(showCorrect || showIncorrect || isSelected) && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#fff' }} />}
                         </div>
-                        <span style={{ flex: 1 }}>{opt.text}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: (showCorrect || showIncorrect || isSelected) ? c.text : c.textDim }}>{opt.text}</div>
+                          {lessonState === 'answered' && isSelected && (
+                            <div className="animate-fade-in" style={{ marginTop: '12px', fontSize: '14px', color: opt.correct ? c.correctText : c.errorText, backgroundColor: c.bg, padding: '12px', borderRadius: '8px', border: `1px solid ${opt.correct ? c.correctText : c.errorText}40` }}>
+                              {opt.explanation}
+                            </div>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
-                
-                {lessonState === 'answered' && (
-                  <div className="animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both', marginTop: '40px', padding: '32px', backgroundColor: c.panel, border: `1px solid ${c.border}`, borderRadius: '16px', color: c.text, fontSize: '17px', lineHeight: '1.7', boxShadow: `0 10px 30px rgba(0,0,0,0.1)` }}>
-                    <div style={{ fontWeight: 800, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px', color: lesson.options[selectedOption].correct ? c.correctText : c.errorText }}>
-                      {lesson.options[selectedOption].correct ? <><CheckCircle2 size={22} /> Excellent</> : <><Target size={22} /> Not quite</>}
-                    </div>
-                    {lesson.options[selectedOption].explanation}
-                  </div>
-                )}
               </div>
             )}
+            
           </div>
-        </div>
 
-        {/* Floating Action Button for Next */}
-        <div 
-          style={{ 
-            position: 'absolute', bottom: 0, left: 0, right: 0, 
-            padding: '32px 24px', 
-            background: `linear-gradient(to top, ${c.bg} 60%, transparent 100%)`, 
-            display: 'flex', justifyContent: 'center',
-            pointerEvents: 'none',
-            opacity: ((lesson.type === 'sprint' ? !!sprintResult : (lesson.type !== 'mcq' || lessonState === 'answered'))) ? 1 : 0,
-            transform: ((lesson.type === 'sprint' ? !!sprintResult : (lesson.type !== 'mcq' || lessonState === 'answered'))) ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            zIndex: 20
-          }}
-        >
-          <div style={{ maxWidth: '760px', width: '100%', display: 'flex', justifyContent: 'flex-end', pointerEvents: 'auto' }}>
-            <button
-              onClick={handleNextLesson}
-              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 40px', backgroundColor: c.primary, color: '#fff', border: 'none', borderRadius: '40px', fontSize: '18px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.3s', boxShadow: `0 10px 25px ${c.primary}66` }}
-              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 15px 35px ${c.primary}88`; }}
-              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 10px 25px ${c.primary}66`; }}
+          {/* Sticky Bottom Bar */}
+          <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, padding: '24px 60px', backgroundColor: c.bg, borderTop: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
+            <div style={{ display: 'flex', gap: '24px', color: c.textDim, fontSize: '14px', fontWeight: 500 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={16} /> {selectedSkill.time || '15 mins'}</span>
+            </div>
+            
+            <button 
+              onClick={handleNext}
+              disabled={isNextDisabled}
+              style={{
+                padding: '14px 28px', borderRadius: '8px', backgroundColor: c.primary,
+                color: '#fff', fontSize: '15px', fontWeight: 600, border: 'none',
+                display: 'flex', alignItems: 'center', gap: '12px', cursor: isNextDisabled ? 'not-allowed' : 'pointer',
+                boxShadow: isNextDisabled ? 'none' : `0 4px 12px ${c.primary}40`, transition: 'transform 0.2s',
+                opacity: isNextDisabled ? 0.5 : 1
+              }}
+              onMouseOver={e=> { if(!isNextDisabled) e.currentTarget.style.transform='translateY(-2px)'; }}
+              onMouseOut={e=> { if(!isNextDisabled) e.currentTarget.style.transform='translateY(0)'; }}
             >
-              {currentLessonIndex === selectedSkill.lessons.length - 1 ? 'Complete Skill' : 'Continue'} <ChevronRight size={22} />
+              {isLastLesson ? 'Finish Module' : 'Continue'} <ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} />
+              <span style={{ opacity: 0.6, fontSize: '12px', marginLeft: '8px', fontWeight: 400 }}>Press Enter ↵</span>
             </button>
           </div>
         </div>
+
       </div>
     );
   };
@@ -978,7 +1078,8 @@ export default function PMAcademy() {
   };
 
 
-  return (
+
+    return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', backgroundColor: c.bg, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {selectedSkill ? (domain.id === 'case-studies' ? renderCasePlayer() : renderPlayer()) : (domain.id === 'case-studies' ? renderCaseBrowser() : renderBrowser())}
       
