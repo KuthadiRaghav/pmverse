@@ -16,6 +16,7 @@ import CareerProfile from './CareerProfile';
 import PromptLab from './PromptLab';
 
 import FileExplorer from './FileExplorer';
+import desktopBg from '../assets/desktop_bg.jpg';
 import Readme, { ONBOARD_KEY } from './Readme';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
@@ -255,7 +256,11 @@ export default function Desktop() {
       style={{
       width: '100vw', height: '100vh',
       backgroundColor: theme === 'dark' ? '#2a2723' : '#eae6df',
-      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E")`,
+      backgroundImage: theme === 'dark' 
+        ? `linear-gradient(rgba(22, 27, 34, 0.7), rgba(22, 27, 34, 0.7)), url(${desktopBg})` 
+        : `url(${desktopBg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
       position: 'relative',
       overflow: 'hidden',
       color: theme === 'dark' ? '#c9d1d9' : '#111827'
