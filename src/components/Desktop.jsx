@@ -16,7 +16,7 @@ import CareerProfile from './CareerProfile';
 import PromptLab from './PromptLab';
 
 import FileExplorer from './FileExplorer';
-import Welcome, { ONBOARD_KEY } from './Welcome';
+import Readme, { ONBOARD_KEY } from './Readme';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
 import { useAuth } from '../auth/AuthContext';
@@ -44,14 +44,21 @@ export const APPS = [
   { id: 'win-sql', title: 'NovaData SQL', Component: SqlConsole, defaultSize: { w: 850, h: 600 } },
   { id: 'win-portfolio', title: 'Portfolio Map', Component: PortfolioMap, defaultSize: { w: 900, h: 600 } },
   { id: 'win-ide', title: 'NovaCode IDE', Component: NovaIDE, defaultSize: { w: 900, h: 600 } },
-  { id: 'win-drive', title: 'Company Drive', Component: FileExplorer, defaultSize: { w: 850, h: 600 } }
+  { id: 'win-drive', title: 'Company Drive', Component: FileExplorer, defaultSize: { w: 850, h: 600 } },
+  { id: 'win-readme', title: 'README.md', Component: Readme, defaultSize: { w: 750, h: 700 } }
 ];
 
 export default function Desktop() {
   const { theme, toggleTheme } = useTheme();
   const { unreadCount, unreadChatCount, rank, totalXP, toasts, dismissToast, state } = useCase();
   const { currentUser, logout } = useAuth();
-  const [openWindows, setOpenWindows] = useState([]);
+  const [openWindows, setOpenWindows] = useState(() => {
+    try {
+      return !localStorage.getItem(ONBOARD_KEY) ? ['win-readme'] : [];
+    } catch {
+      return [];
+    }
+  });
   const [minimizedWindows, setMinimizedWindows] = useState([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState('');
@@ -66,10 +73,6 @@ export default function Desktop() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
-  const [showWelcome, setShowWelcome] = useState(() => {
-    try { return !localStorage.getItem(ONBOARD_KEY); } catch { return false; }
-  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -402,6 +405,7 @@ export default function Desktop() {
           { id: 'icon-promptlab', title: 'PromptLab', icon: <FlaskConical size={28} color="#84cc16" />, type: 'app', appId: 'win-promptlab', side: 'left' },
           
           // Right Column
+          { id: 'icon-readme', title: 'README.md', icon: <FileText size={28} color="#f59e0b" />, type: 'app', appId: 'win-readme', side: 'right' },
           { id: 'icon-academy', title: 'PM Academy', icon: <GraduationCap size={28} color="#6d28d9" />, type: 'app', appId: 'win-academy', side: 'right' },
           { id: 'icon-sheets', title: 'NovaSheets', icon: <Table size={28} color="#10b981" />, type: 'app', appId: 'win-sheets', side: 'right' },
           { id: 'icon-sprint', title: 'Sprint Board', icon: <Layout size={28} color="#3b82f6" />, type: 'app', appId: 'win-sprint', side: 'right' },
@@ -520,8 +524,6 @@ export default function Desktop() {
         });
       })()}
 
-      {showWelcome && <Welcome onDone={() => setShowWelcome(false)} />}
-
       {/* Zeigarnik Effect Checklist Widget */}
       {!state.decision && (
         <motion.div
@@ -611,6 +613,14 @@ export default function Desktop() {
         
         const zIndex = 10 + index;
         const isFocused = index === openWindows.length - 1;
+
+        if (winId === 'win-readme') {
+          return (
+            <Window key={winId} title={app.title} onClose={() => closeWindow(winId)} onMinimize={() => minimizeWindow(winId)} isMinimized={minimizedWindows.includes(winId)} initialWidth={750} initialHeight={700} x={150} y={50} zIndex={zIndex} isFocused={isFocused} onFocus={() => focusWindow(winId)}>
+              <Readme />
+            </Window>
+          );
+        }
 
         if (winId === 'win-drive') {
           return (
