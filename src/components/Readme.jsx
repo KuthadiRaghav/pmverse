@@ -2,8 +2,7 @@ import React from 'react';
 import { useTokens, ACCENT } from '../theme';
 import { useCase } from '../case/CaseContext';
 import { useAuth } from '../auth/AuthContext';
-import { CheckCircle2, Play, BookOpen } from 'lucide-react';
-import heroImage from '../assets/readme_hero.jpg';
+import { CheckCircle2, Play, BookOpen, Terminal, Database, MessageSquare, ListTodo, Map } from 'lucide-react';
 
 export const ONBOARD_KEY = 'pmverse_onboarded_v1';
 
@@ -11,7 +10,7 @@ export default function Readme() {
   const t = useTokens();
   const { openApp } = useCase();
   const { currentUser } = useAuth();
-
+  
   const handleStart = () => {
     try { 
       if (currentUser) {
@@ -19,6 +18,13 @@ export default function Readme() {
       }
     } catch { /* session-only */ }
     openApp('win-mail');
+  };
+
+  const appIconStyle = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: '32px', height: '32px', borderRadius: '8px', 
+    backgroundColor: t.bg === '#0d1117' ? '#21262d' : '#f3f4f6',
+    color: ACCENT, flexShrink: 0
   };
 
   return (
@@ -31,35 +37,17 @@ export default function Readme() {
       padding: '40px',
       boxSizing: 'border-box'
     }}>
-      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '750px', margin: '0 auto' }}>
         
         {/* Header Section */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <div style={{
-            width: '40px', height: '40px', borderRadius: '8px',
-            background: `linear-gradient(135deg, ${ACCENT}, #d946ef)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 800, fontSize: '20px'
-          }}>
-            PM
-          </div>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
-            PMverse
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
+            NovaOS User Guide
           </h1>
+          <p style={{ fontSize: '16px', color: t.dim, lineHeight: 1.6, margin: 0 }}>
+            Welcome to PMverse. This operating system is your virtual workspace for navigating complex product challenges. Before you clock in, review this manual to understand your toolset and the core workflow.
+          </p>
         </div>
-
-        <h2 style={{ fontSize: '24px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>
-          The OS Simulator for Product Managers
-        </h2>
-        
-        <p style={{ fontSize: '15px', color: t.dim, lineHeight: 1.6, marginBottom: '24px' }}>
-          Welcome to PMverse, the only EdTech platform that acts like a real operating system, 
-          throwing you into the deep end of a chaotic startup. Product development used to mean 
-          reading static case studies, taking multiple-choice quizzes, and listening to lectures. 
-          <br /><br />
-          At PMverse, you don't just read about being a Product Manager—you <i>live</i> it. 
-          You will investigate real data, negotiate with AI stakeholders, and make hard strategic calls autonomously.
-        </p>
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '16px', marginBottom: '40px' }}>
@@ -67,85 +55,119 @@ export default function Readme() {
             onClick={handleStart}
             style={{
               padding: '12px 24px', borderRadius: '8px', border: 'none',
-              background: '#f59e0b', color: '#fff',
+              background: '#10b981', color: '#fff',
               fontSize: '14px', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '8px',
-              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
             }}
           >
-            <Play size={16} fill="currentColor" /> Clock in — Read your first email
-          </button>
-          
-          <button 
-            onClick={() => openApp('win-drive')}
-            style={{
-              padding: '12px 24px', borderRadius: '8px', 
-              border: `1px solid ${t.border}`, background: 'transparent', color: t.text,
-              fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px'
-            }}
-          >
-            <BookOpen size={16} /> Open Company Drive
+            <Play size={16} fill="currentColor" /> Clock in — Open NovaMail
           </button>
         </div>
 
-        {/* Hero Image */}
-        <div style={{
-          width: '100%', borderRadius: '16px', overflow: 'hidden',
-          border: `1px solid ${t.border}`, marginBottom: '40px',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.1)'
-        }}>
-          <img src={heroImage} alt="PMverse Hero" style={{ width: '100%', display: 'block' }} />
-        </div>
+        <div style={{ height: '1px', backgroundColor: t.border, marginBottom: '40px' }} />
 
-        {/* Features Section */}
-        <div style={{
-          padding: '32px', borderRadius: '16px',
-          border: `2px solid ${ACCENT}`,
-          backgroundColor: t.bg === '#0d1117' ? 'rgba(137,87,229,0.05)' : 'rgba(137,87,229,0.02)'
-        }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>
-            Fast-track your PM career with real-world practice
-          </h3>
-          <p style={{ fontSize: '14px', color: t.dim, lineHeight: 1.6, marginBottom: '24px' }}>
-            Whether you are aspiring to land your first APM role, preparing for grueling PM interviews, 
-            or aiming for a promotion, PMverse bridges the gap between theory and execution. Gain the intuition 
-            that usually takes years of on-the-job experience to build, without risking real user metrics or company revenue.
+        {/* Core Loop Section */}
+        <div style={{ marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 20px 0' }}>The Core Workflow</h2>
+          <p style={{ fontSize: '15px', color: t.text, lineHeight: 1.6, margin: '0 0 24px 0' }}>
+            As a Product Manager, your work is cyclical. You will progress through cases by following these phases:
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <div>
-              <h4 style={{ fontSize: '14px', fontWeight: 700, color: t.text, marginBottom: '12px', borderBottom: `1px solid ${t.border}`, paddingBottom: '8px' }}>
-                Investigate
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: t.dim }}>
-                  <CheckCircle2 size={14} color="#10b981" /> Query raw SQL data
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: t.dim }}>
-                  <CheckCircle2 size={14} color="#3b82f6" /> Interview AI stakeholders
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: t.dim }}>
-                  <CheckCircle2 size={14} color="#f59e0b" /> Build revenue models
-                </li>
-              </ul>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '12px', border: `1px solid ${t.border}`, backgroundColor: t.bg === '#0d1117' ? '#161b22' : '#ffffff' }}>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: t.dim }}>01</div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px 0' }}>The Inbox</h3>
+                <p style={{ fontSize: '14px', color: t.dim, margin: 0, lineHeight: 1.5 }}>Every case starts with a trigger in NovaMail. Read carefully to understand the context, constraints, and demands of your stakeholders.</p>
+              </div>
             </div>
-            <div>
-              <h4 style={{ fontSize: '14px', fontWeight: 700, color: t.text, marginBottom: '12px', borderBottom: `1px solid ${t.border}`, paddingBottom: '8px' }}>
-                Execute
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: t.dim }}>
-                  <CheckCircle2 size={14} color="#ef4444" /> Commit to a decision
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: t.dim }}>
-                  <CheckCircle2 size={14} color="#a855f7" /> Manage the fallout
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: t.dim }}>
-                  <CheckCircle2 size={14} color="#6366f1" /> Build your PM portfolio
-                </li>
-              </ul>
+
+            <div style={{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '12px', border: `1px solid ${t.border}`, backgroundColor: t.bg === '#0d1117' ? '#161b22' : '#ffffff' }}>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: t.dim }}>02</div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px 0' }}>The Investigation</h3>
+                <p style={{ fontSize: '14px', color: t.dim, margin: 0, lineHeight: 1.5 }}>Don't take demands at face value. Open NovaData SQL to query user event logs, check financial viability in NovaSheets, or interview your team in the Decision Center.</p>
+              </div>
             </div>
+
+            <div style={{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '12px', border: `1px solid ${t.border}`, backgroundColor: t.bg === '#0d1117' ? '#161b22' : '#ffffff' }}>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: t.dim }}>03</div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px 0' }}>The Decision</h3>
+                <p style={{ fontSize: '14px', color: t.dim, margin: 0, lineHeight: 1.5 }}>Return to the original NovaMail thread to officially commit to a decision. You will be asked to back up your choice with the exact evidence you uncovered during your investigation.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ height: '1px', backgroundColor: t.border, marginBottom: '40px' }} />
+
+        {/* App Directory Section */}
+        <div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 20px 0' }}>System App Directory</h2>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ padding: '20px', borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={appIconStyle}><Database size={18} /></div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>NovaData SQL</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+                Your portal into the company's live production database. Use this to write SQL queries against user tables, payment logs, and event streams. If a stakeholder claims a feature is failing, verify the raw numbers here first.
+              </p>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={appIconStyle}><MessageSquare size={18} /></div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Decision Center</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+                The company's internal messaging platform. Use this app to conduct qualitative interviews with AI stakeholders, negotiate engineering capacity, and uncover context that isn't captured in the SQL database.
+              </p>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={appIconStyle}><ListTodo size={18} /></div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Sprint Board</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+                The engineering team's task management system. Drag and drop tickets to prioritize work based on available capacity. You can also click on tickets to write detailed Product Requirement Documents (PRDs).
+              </p>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={appIconStyle}><Terminal size={18} /></div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>NovaCode IDE</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+                A fully functioning terminal and coding environment. For technical cases, you may be required to run scripts, analyze API payloads, or fix bugs directly in the environment to unblock the engineering team.
+              </p>
+            </div>
+            
+            <div style={{ padding: '20px', borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={appIconStyle}><Map size={18} /></div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Portfolio Map</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+                A visual scatter plot for high-level strategic planning. Use this when you need to evaluate multiple roadmap initiatives by weighing their expected Impact against their anticipated Effort.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ marginTop: '40px', padding: '24px', borderRadius: '12px', backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <CheckCircle2 size={24} color="#10b981" style={{ flexShrink: 0 }} />
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 8px 0', color: t.text }}>Ready to begin?</h3>
+            <p style={{ fontSize: '14px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+              Your career starts now. Click the 'Clock In' button at the top of this guide or open NovaMail from the taskbar to read your first assignment.
+            </p>
           </div>
         </div>
 
