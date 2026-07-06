@@ -432,38 +432,99 @@ const CASE_FILES = [
     content: `# NovaCart: Company Brief
     
 **Mission**: Sustainable home goods for the modern apartment.
-**Status**: Series A ($12M raised).
-**Headcount**: 40 employees (4 engineers).
+**Status**: Series A ($12M raised from Baseline Ventures and First Round).
+**Headcount**: 40 employees (4 engineers, 1 PM, 2 Data, 5 Design, 28 Ops/Marketing/Support).
 
 ## Core Business Model
-NovaCart operates as a direct-to-consumer (D2C) marketplace for sustainable, bamboo-based, and recycled home goods (kitchenware, bathroom essentials, small decor). Our primary growth engine over the last year has been performance marketing (Instagram/TikTok ads) targeting millennials in urban apartments.
+NovaCart operates as a direct-to-consumer (D2C) marketplace for sustainable, bamboo-based, and recycled home goods. We own the supply chain for our flagship products (kitchenware, bathroom essentials) and curate a selection of third-party sustainable goods.
 
-## Product Ecosystem
-We have two main platforms:
-1. **Desktop Web**: Accounts for ~30% of traffic, mostly used for initial discovery and large basket purchases.
-2. **Mobile App**: Accounts for ~70% of traffic. Mobile is the core of our business and drives our repeat purchase behavior.
+Our primary growth engine over the last 18 months has been performance marketing (Instagram and TikTok ads) targeting millennials in urban apartments who are upgrading their first independent living spaces.
 
-## Current Strategic Goal
-To secure a Series B round in the next 6 months, we must prove that our customer acquisition cost (CAC) is offset by a strong lifetime value (LTV). Currently, our Week-4 retention is the biggest risk to that narrative.`
+### The Math of Our Business
+*   **Customer Acquisition Cost (CAC)**: ~$40 per new user.
+*   **Average Order Value (AOV)**: $42.
+*   **Gross Margin**: 60%.
+*   **LTV Target**: To maintain our 4.5 LTV:CAC ratio and secure our Series B, a customer must make at least **1.8 orders per month** for the first year. 
+
+## Strategic Goal: The Series B
+We have six months of runway remaining. To secure a $30M Series B round, we must prove that our customer acquisition cost (CAC) is offset by a strong lifetime value (LTV). Currently, our Week-4 retention is the biggest risk to that narrative. If the "leaky bucket" is not plugged, investors will view our growth as fundamentally unsustainable.`
+  },
+  {
+    id: 'user_personas',
+    name: 'User_Personas.md',
+    type: 'markdown',
+    content: `# NovaCart User Personas
+
+Our UX Research team has identified two core segments that drive 80% of our revenue.
+
+## 1. The Eco-Conscious Apartment Dweller (65% of Revenue)
+**Demographics**: 24-35 years old, urban renter, $60k-$100k income.
+**Behaviors**: 
+- Shops primarily on the **Mobile App** (usually while commuting or on the couch in the evening).
+- Highly responsive to visual marketing (TikTok hauls, Instagram aesthetics).
+- Values sustainability but is unwilling to sacrifice convenience or design.
+
+**Jobs To Be Done (JTBD)**:
+> *"Help me make my small, rented apartment feel like a curated, adult home without contributing to plastic waste."*
+
+**Key Pain Points**:
+- They abandon carts quickly if the friction is too high.
+- They are easily annoyed by excessive marketing ("spam"), which feels antithetical to the "minimalist, sustainable" brand promise.
+
+## 2. The Suburban "Green" Parent (15% of Revenue)
+**Demographics**: 32-45 years old, homeowner, $100k+ income.
+**Behaviors**:
+- Shops heavily on **Desktop Web** during work hours or after kids are asleep.
+- Buys in bulk (AOV is 3x higher than the urban segment).
+- Extremely loyal once they find a brand they trust for family-safe materials.
+
+**Jobs To Be Done (JTBD)**:
+> *"Provide me with safe, non-toxic, and sustainable household goods in bulk so I don't have to constantly reorder."*`
+  },
+  {
+    id: 'tech_and_product',
+    name: 'Product_and_Tech.md',
+    type: 'markdown',
+    content: `# Product & Tech Architecture
+
+## The NovaCart Ecosystem
+NovaCart operates across two primary client platforms:
+1.  **Desktop Web (React/Next.js)**: Accounts for ~30% of traffic. Highly stable, used for bulk orders and initial brand discovery.
+2.  **Mobile App (React Native)**: Accounts for ~70% of traffic and drives the vast majority of our repeat purchase behavior.
+
+## Core Capabilities
+*   **Catalog & Search**: ElasticSearch backend, highly optimized.
+*   **Checkout & Payments**: We process transactions natively. 
+    *   *Recent Change*: In **v2.4 (9 weeks ago)**, we migrated our payment processing to a new vendor SDK to save 0.5% on transaction fees. This was rushed under a tight deadline from Finance.
+*   **Marketing Automation**: Braze integration. Marketing currently has manual control over email cadences.
+*   **Loyalty & Rewards**: **None.** (This is the CEO's primary feature request).
+
+## Technical Debt & Constraints
+*   **Engineering Capacity**: We have exactly 4 full-stack engineers. Any feature that takes "the whole team" means all other feature work and bug fixing halts entirely.
+*   **Monitoring**: We use Datadog for latency tracking, but alerts are frequently snoozed during high-pressure sprint deliveries. Our p75 latency (the speed at which 75% of users experience the app) is the primary metric for app health.`
   },
   {
     id: 'board_meeting_notes',
-    name: 'Q3_Board_Prep_Notes.md',
+    name: 'Q3_Board_Prep.md',
     type: 'markdown',
-    content: `# Board Prep: The Retention Problem
+    content: `# Board Prep: The Retention Crisis
 
 **Date**: Last Tuesday
 **Attendees**: Maya Chen (CEO), Board Members (Sequoia, Benchmark reps)
 
 ## Summary of Panic
-- Revenue is down 18% QoQ.
+- Revenue is down **18% QoQ**.
 - Two major investors called Maya privately to express concern over the "leaky bucket."
-- The board meets in exactly 6 weeks. If the retention curve isn't fixed (or at least definitively diagnosed and on a recovery path), the Series B is completely off the table.
+- The board meets in exactly **6 weeks**. If the retention curve isn't fixed (or at least definitively diagnosed and on a recovery path), the Series B is completely off the table.
 
-## The CEO's Directive
-Maya believes the product is too transactional. She is heavily pushing for **NovaCart Rewards**, a points-based loyalty program. She implemented this at her previous company and saw a 20% lift in repeat purchases. 
+## Direct Quotes from the Board
+> *"Maya, your CAC is fine, but you're pouring water into a bucket with no bottom. Why did week-4 retention fall off a cliff two months ago? You need an answer and a fix by the next meeting."* — **Sarah T. (Lead Investor)**
 
-**Note from Maya to Product**: "I need a decision ASAP. Do we build the loyalty program, or do you have a better idea? If you have a better idea, you need to prove it to me."`
+## The CEO's Directive (Internal)
+Maya believes the product is too transactional and lacks stickiness. She is heavily pushing for **NovaCart Rewards**, a points-based loyalty program. She implemented this at her previous company and saw a 20% lift in repeat purchases. 
+
+**Note from Maya to Product (You)**: 
+> *"I need a decision ASAP. Do we build the loyalty program, or do you have a better idea? If you have a better idea, you need to prove it to me using hard data."*`
   }
 ];
 
