@@ -53,12 +53,12 @@ export default function Readme() {
         </h2>
         
         <p style={{ fontSize: '15px', color: t.dim, lineHeight: 1.6, marginBottom: '24px' }}>
-          Product development used to mean reading case studies, taking multiple-choice quizzes, 
-          and listening to lectures. 
+          Welcome to PMverse, the only EdTech platform that acts like a real operating system, 
+          throwing you into the deep end of a chaotic startup. Product development used to mean 
+          reading static case studies, taking multiple-choice quizzes, and listening to lectures. 
           <br /><br />
-          PMverse is the only platform that acts like a real operating system, throwing you into 
-          the deep end of a chaotic startup where you have to investigate data, interview stakeholders, 
-          and make the hard calls—<i>autonomously</i>.
+          At PMverse, you don't just read about being a Product Manager—you <i>live</i> it. 
+          You will investigate real data, negotiate with AI stakeholders, and make hard strategic calls autonomously.
         </p>
 
         {/* Action Buttons */}
@@ -105,11 +105,12 @@ export default function Readme() {
           backgroundColor: t.bg === '#0d1117' ? 'rgba(137,87,229,0.05)' : 'rgba(137,87,229,0.02)'
         }}>
           <h3 style={{ fontSize: '20px', fontWeight: 700, marginTop: 0, marginBottom: '16px' }}>
-            Build better products with better decisions
+            Fast-track your PM career with real-world practice
           </h3>
           <p style={{ fontSize: '14px', color: t.dim, lineHeight: 1.6, marginBottom: '24px' }}>
-            Not your mama's product course. Real data is imported into NovaData SQL and lives as a first-class citizen. 
-            This means you can query raw event logs <i>and</i> user attributes, leading to more informed decisions.
+            Whether you are aspiring to land your first APM role, preparing for grueling PM interviews, 
+            or aiming for a promotion, PMverse bridges the gap between theory and execution. Gain the intuition 
+            that usually takes years of on-the-job experience to build, without risking real user metrics or company revenue.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
