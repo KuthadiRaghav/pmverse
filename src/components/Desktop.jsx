@@ -52,13 +52,21 @@ export default function Desktop() {
   const { theme, toggleTheme } = useTheme();
   const { unreadCount, unreadChatCount, rank, totalXP, toasts, dismissToast, state } = useCase();
   const { currentUser, logout } = useAuth();
-  const [openWindows, setOpenWindows] = useState(() => {
+  
+  const hasCheckedOnboard = useRef(false);
+  const [openWindows, setOpenWindows] = useState([]);
+
+  useEffect(() => {
+    if (!currentUser || hasCheckedOnboard.current) return;
+    hasCheckedOnboard.current = true;
+    const userKey = `${ONBOARD_KEY}_${currentUser.uid}`;
     try {
-      return !localStorage.getItem(ONBOARD_KEY) ? ['win-readme'] : [];
-    } catch {
-      return [];
-    }
-  });
+      if (!localStorage.getItem(userKey)) {
+        setOpenWindows(prev => [...prev, 'win-readme']);
+      }
+    } catch {}
+  }, [currentUser]);
+
   const [minimizedWindows, setMinimizedWindows] = useState([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState('');

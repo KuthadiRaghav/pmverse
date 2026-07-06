@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTokens, ACCENT } from '../theme';
 import { useCase } from '../case/CaseContext';
+import { useAuth } from '../auth/AuthContext';
 import { CheckCircle2, Play, BookOpen } from 'lucide-react';
 import heroImage from '../assets/readme_hero.jpg';
 
@@ -9,9 +10,14 @@ export const ONBOARD_KEY = 'pmverse_onboarded_v1';
 export default function Readme() {
   const t = useTokens();
   const { openApp } = useCase();
+  const { currentUser } = useAuth();
 
   const handleStart = () => {
-    try { localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* session-only */ }
+    try { 
+      if (currentUser) {
+        localStorage.setItem(`${ONBOARD_KEY}_${currentUser.uid}`, '1'); 
+      }
+    } catch { /* session-only */ }
     openApp('win-mail');
   };
 
