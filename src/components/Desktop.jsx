@@ -409,24 +409,24 @@ export default function Desktop() {
       {showIcons && (() => {
         const icons = [
           // Left Column
-          { id: 'icon-drive', title: 'Company Drive', icon: <HardDrive size={28} color="#f59e0b" />, type: 'app', appId: 'win-drive', side: 'left' },
-          { id: 'icon-mail', title: 'NovaMail', icon: <Mail size={28} color="#8b5cf6" />, type: 'app', appId: 'win-mail', side: 'left' },
-          { id: 'icon-chat', title: 'NovaChat', icon: <MessageSquare size={28} color="#ec4899" />, type: 'app', appId: 'win-chat', side: 'left' },
-          { id: 'icon-metrics', title: 'NovaMetrics', icon: <BarChart2 size={28} color="#0369a1" />, type: 'app', appId: 'win-metrics', side: 'left' },
-          { id: 'icon-artifacts', title: 'Portfolio', icon: <Folder size={28} color="#a855f7" />, type: 'app', appId: 'win-artifacts', side: 'left' },
-          { id: 'icon-career', title: 'Career', icon: <User size={28} color="#f97316" />, type: 'app', appId: 'win-career', side: 'left' },
-          { id: 'icon-promptlab', title: 'PromptLab', icon: <FlaskConical size={28} color="#84cc16" />, type: 'app', appId: 'win-promptlab', side: 'left' },
+          { id: 'icon-drive', title: 'Company Drive', Icon: HardDrive, bg: 'linear-gradient(135deg, #fbb86c, #f59e0b)', type: 'app', appId: 'win-drive', side: 'left' },
+          { id: 'icon-mail', title: 'NovaMail', Icon: Mail, bg: 'linear-gradient(135deg, #c084fc, #8b5cf6)', type: 'app', appId: 'win-mail', side: 'left' },
+          { id: 'icon-chat', title: 'NovaChat', Icon: MessageSquare, bg: 'linear-gradient(135deg, #f472b6, #ec4899)', type: 'app', appId: 'win-chat', side: 'left' },
+          { id: 'icon-metrics', title: 'NovaMetrics', Icon: BarChart2, bg: 'linear-gradient(135deg, #38bdf8, #0284c7)', type: 'app', appId: 'win-metrics', side: 'left' },
+          { id: 'icon-artifacts', title: 'Portfolio', Icon: Folder, bg: 'linear-gradient(135deg, #c084fc, #9333ea)', type: 'app', appId: 'win-artifacts', side: 'left' },
+          { id: 'icon-career', title: 'Career', Icon: User, bg: 'linear-gradient(135deg, #fb923c, #ea580c)', type: 'app', appId: 'win-career', side: 'left' },
+          { id: 'icon-promptlab', title: 'PromptLab', Icon: FlaskConical, bg: 'linear-gradient(135deg, #a3e635, #65a30d)', type: 'app', appId: 'win-promptlab', side: 'left' },
           
           // Right Column
-          { id: 'icon-readme', title: 'README.md', icon: <FileText size={28} color="#f59e0b" />, type: 'app', appId: 'win-readme', side: 'right' },
-          { id: 'icon-academy', title: 'PM Academy', icon: <GraduationCap size={28} color="#6d28d9" />, type: 'app', appId: 'win-academy', side: 'right' },
-          { id: 'icon-sheets', title: 'NovaSheets', icon: <Table size={28} color="#10b981" />, type: 'app', appId: 'win-sheets', side: 'right' },
-          { id: 'icon-sprint', title: 'Sprint Board', icon: <Layout size={28} color="#3b82f6" />, type: 'app', appId: 'win-sprint', side: 'right' },
-          { id: 'icon-decide', title: 'Decision Center', icon: <MessageCircle size={28} color="#ef4444" />, type: 'app', appId: 'win-decide', side: 'right' },
-          { id: 'icon-sql', title: 'NovaData SQL', icon: <Database size={28} color="#14b8a6" />, type: 'app', appId: 'win-sql', side: 'right' },
-          { id: 'icon-portfolio', title: 'Portfolio Map', icon: <Map size={28} color="#6366f1" />, type: 'app', appId: 'win-portfolio', side: 'right' },
-          { id: 'icon-ide', title: 'NovaCode IDE', icon: <TerminalIcon size={28} color="#374151" />, type: 'app', appId: 'win-ide', side: 'right' },
-          { id: 'icon-trash', title: 'Trash', icon: <Trash2 size={28} color="#6b7280" />, type: 'trash', side: 'right' }
+          { id: 'icon-readme', title: 'README.md', Icon: FileText, bg: 'linear-gradient(135deg, #fbbf24, #d97706)', type: 'app', appId: 'win-readme', side: 'right' },
+          { id: 'icon-academy', title: 'PM Academy', Icon: GraduationCap, bg: 'linear-gradient(135deg, #a78bfa, #7c3aed)', type: 'app', appId: 'win-academy', side: 'right' },
+          { id: 'icon-sheets', title: 'NovaSheets', Icon: Table, bg: 'linear-gradient(135deg, #34d399, #059669)', type: 'app', appId: 'win-sheets', side: 'right' },
+          { id: 'icon-sprint', title: 'Sprint Board', Icon: Layout, bg: 'linear-gradient(135deg, #60a5fa, #2563eb)', type: 'app', appId: 'win-sprint', side: 'right' },
+          { id: 'icon-decide', title: 'Decision Center', Icon: MessageCircle, bg: 'linear-gradient(135deg, #f87171, #dc2626)', type: 'app', appId: 'win-decide', side: 'right' },
+          { id: 'icon-sql', title: 'NovaData SQL', Icon: Database, bg: 'linear-gradient(135deg, #2dd4bf, #0d9488)', type: 'app', appId: 'win-sql', side: 'right' },
+          { id: 'icon-portfolio', title: 'Portfolio Map', Icon: Map, bg: 'linear-gradient(135deg, #818cf8, #4f46e5)', type: 'app', appId: 'win-portfolio', side: 'right' },
+          { id: 'icon-ide', title: 'NovaCode IDE', Icon: TerminalIcon, bg: 'linear-gradient(135deg, #6b7280, #374151)', type: 'app', appId: 'win-ide', side: 'right' },
+          { id: 'icon-trash', title: 'Trash', Icon: Trash2, bg: 'linear-gradient(135deg, #9ca3af, #4b5563)', type: 'trash', side: 'right' }
         ];
 
         let leftCount = 0;
@@ -481,13 +481,12 @@ export default function Desktop() {
             >
               <div style={{
                 width: '56px', height: '56px',
-                backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.6)',
-                border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-                borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center',
-                boxShadow: theme === 'dark' ? '0 4px 12px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.05)',
-                backdropFilter: 'blur(10px)'
+                background: icon.bg,
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center',
+                boxShadow: theme === 'dark' ? '0 6px 16px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.3)' : '0 4px 12px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)',
               }}>
-                {icon.icon}
+                <icon.Icon size={30} color="#ffffff" strokeWidth={1.75} style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.3))' }} />
                 {/* Notification Badges */}
                 {icon.appId === 'win-mail' && unreadCount > 0 && (
                   <div style={{
@@ -526,9 +525,9 @@ export default function Desktop() {
                 )}
               </div>
               <span style={{
-                fontSize: '11px', fontWeight: 500, textAlign: 'center',
+                fontSize: '11px', fontWeight: 600, textAlign: 'center',
                 color: theme === 'dark' ? '#fff' : '#111827',
-                textShadow: theme === 'dark' ? '0 1px 2px rgba(0,0,0,0.8)' : 'none'
+                textShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.8)' : '0 1px 3px rgba(255,255,255,0.8)'
               }}>
                 {icon.title}
               </span>
