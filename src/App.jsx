@@ -7,6 +7,7 @@ import Onboarding from './components/Onboarding';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import VerifyEmail from './components/VerifyEmail';
+import ProcessingVerification from './components/ProcessingVerification';
 import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
@@ -14,6 +15,15 @@ function AuthRouter() {
   const { currentUser } = useAuth();
   const [onboarded, setOnboarded] = useState(true);
   const [showSignup, setShowSignup] = useState(false);
+
+  // Check URL for email verification action codes
+  const queryParams = new URLSearchParams(window.location.search);
+  const mode = queryParams.get('mode');
+  const oobCode = queryParams.get('oobCode');
+
+  if (mode === 'verifyEmail' && oobCode) {
+    return <ProcessingVerification oobCode={oobCode} />;
+  }
 
   useEffect(() => {
     if (currentUser) {
