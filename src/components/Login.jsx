@@ -142,7 +142,7 @@ export default function Login({ onSwitchToSignup }) {
 
           <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
             Welcome back <span role="img" aria-label="wave">👋</span><br/>
-            to <span style={{ color: brandPurple }}>PMverse OS</span>
+            to <span style={{ color: brandPurple }}>PMverse</span>
           </h1>
           
           <p style={{ color: secondaryText, margin: '0 0 40px 0', fontSize: '15px', lineHeight: '1.5', maxWidth: '80%' }}>
@@ -181,7 +181,7 @@ export default function Login({ onSwitchToSignup }) {
             }}>
               <Compass size={20} color="#ffffff" />
             </div>
-            <span style={{ fontSize: '20px', fontWeight: 700 }}>PMverse OS</span>
+            <span style={{ fontSize: '20px', fontWeight: 700 }}>PMverse</span>
           </div>
           <style>{`
             @media (max-width: 767px) {
@@ -193,7 +193,7 @@ export default function Login({ onSwitchToSignup }) {
             Sign in to your account
           </h2>
           <p style={{ color: secondaryText, margin: '0 0 32px 0', fontSize: '14px' }}>
-            Access your PMverse OS workspace
+            Access your PMverse workspace
           </p>
 
           {error && (

@@ -65,7 +65,7 @@ Generated on: ${new Date().toISOString().slice(0, 10)}
     md += `- Case ${cs.meta.number}: ${cs.meta.title} (${cs.meta.company})\n`;
   });
 
-  md += `\n---\n*Verified via PMverse OS Simulator*`;
+  md += `\n---\n*Verified via PMverse Simulator*`;
 
   const blob = new Blob([md], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);

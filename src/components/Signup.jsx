@@ -148,8 +148,8 @@ export default function Signup({ onSwitchToLogin }) {
           </div>
 
           <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
-            Start building <span role="img" aria-label="rocket">🚀</span><br/>
-            in <span style={{ color: brandPurple }}>PMverse OS</span>
+            Master your craft <span role="img" aria-label="rocket">🚀</span><br/>
+            in <span style={{ color: brandPurple }}>PMverse</span>
           </h1>
           
           <p style={{ color: secondaryText, margin: '0 0 40px 0', fontSize: '15px', lineHeight: '1.5', maxWidth: '80%' }}>
@@ -188,7 +188,7 @@ export default function Signup({ onSwitchToLogin }) {
             }}>
               <Compass size={20} color="#ffffff" />
             </div>
-            <span style={{ fontSize: '20px', fontWeight: 700 }}>PMverse OS</span>
+            <span style={{ fontSize: '20px', fontWeight: 700 }}>PMverse</span>
           </div>
           <style>{`
             @media (max-width: 767px) {

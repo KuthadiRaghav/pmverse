@@ -20,7 +20,7 @@ let bootPromise = null;
 const initialFiles = {
   'index.js': {
     file: {
-      contents: `import express from 'express';\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send('Welcome to PMverse OS!');\n});\n\napp.listen(3111, () => {\n  console.log('App is ready at http://localhost:3111');\n});`,
+      contents: `import express from 'express';\nconst app = express();\n\napp.get('/', (req, res) => {\n  res.send('Welcome to PMverse!');\n});\n\napp.listen(3111, () => {\n  console.log('App is ready at http://localhost:3111');\n});`,
     },
   },
   'package.json': {

@@ -284,7 +284,7 @@ export default function Desktop() {
           >
             PMverse
             {renderDropdown('pmverse', [
-              { label: 'About PMverse', action: () => alert('PMverse OS v1.0.0') },
+              { label: 'About PMverse', action: () => alert('PMverse v1.0.0') },
               'divider',
               { label: 'Lock Screen', disabled: true, shortcut: '^⌘Q' }
             ])}
