@@ -59,6 +59,13 @@ export default function Desktop() {
   const [contextMenu, setContextMenu] = useState({ open: false, x: 0, y: 0 });
   const [showIcons, setShowIcons] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const [showWelcome, setShowWelcome] = useState(() => {
     try { return !localStorage.getItem(ONBOARD_KEY); } catch { return false; }
@@ -266,58 +273,62 @@ export default function Desktop() {
               { label: 'Lock Screen', disabled: true, shortcut: '^⌘Q' }
             ])}
           </div>
-          <div 
-            style={menuStyle('file')}
-            onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'file' ? null : 'file'); }}
-            onMouseEnter={() => handleMenuEnter('file')}
-          >
-            File
-            {renderDropdown('file', [
-              { label: 'Close All Windows', action: () => { setOpenWindows([]); setMinimizedWindows([]); }, shortcut: '⇧⌘W' },
-              { label: 'Minimize All', action: () => { setMinimizedWindows([...openWindows]); }, shortcut: '⌥⌘M' },
-              'divider',
-              { label: 'Restart System', action: () => window.location.reload() }
-            ])}
-          </div>
-          <div 
-            style={menuStyle('edit')}
-            onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'edit' ? null : 'edit'); }}
-            onMouseEnter={() => handleMenuEnter('edit')}
-          >
-            Edit
-            {renderDropdown('edit', [
-              { label: 'Undo', disabled: true, shortcut: '⌘Z' },
-              { label: 'Redo', disabled: true, shortcut: '⇧⌘Z' },
-              'divider',
-              { label: 'Cut', disabled: true, shortcut: '⌘X' },
-              { label: 'Copy', disabled: true, shortcut: '⌘C' },
-              { label: 'Paste', disabled: true, shortcut: '⌘V' }
-            ])}
-          </div>
-          <div 
-            style={menuStyle('view')}
-            onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'view' ? null : 'view'); }}
-            onMouseEnter={() => handleMenuEnter('view')}
-          >
-            View
-            {renderDropdown('view', [
-              { label: `Toggle ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, action: toggleTheme },
-              'divider',
-              { label: 'Enter Full Screen', action: () => document.documentElement.requestFullscreen().catch(() => {}) }
-            ])}
-          </div>
-          <div 
-            style={menuStyle('help')}
-            onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'help' ? null : 'help'); }}
-            onMouseEnter={() => handleMenuEnter('help')}
-          >
-            Help
-            {renderDropdown('help', [
-              { label: 'Open PM Academy', action: () => toggleWindow('win-academy') },
-              'divider',
-              { label: 'Report Issue...', action: () => alert('Please contact support.') }
-            ])}
-          </div>
+          {!isMobile && (
+            <>
+              <div 
+                style={menuStyle('file')}
+                onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'file' ? null : 'file'); }}
+                onMouseEnter={() => handleMenuEnter('file')}
+              >
+                File
+                {renderDropdown('file', [
+                  { label: 'Close All Windows', action: () => { setOpenWindows([]); setMinimizedWindows([]); }, shortcut: '⇧⌘W' },
+                  { label: 'Minimize All', action: () => { setMinimizedWindows([...openWindows]); }, shortcut: '⌥⌘M' },
+                  'divider',
+                  { label: 'Restart System', action: () => window.location.reload() }
+                ])}
+              </div>
+              <div 
+                style={menuStyle('edit')}
+                onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'edit' ? null : 'edit'); }}
+                onMouseEnter={() => handleMenuEnter('edit')}
+              >
+                Edit
+                {renderDropdown('edit', [
+                  { label: 'Undo', disabled: true, shortcut: '⌘Z' },
+                  { label: 'Redo', disabled: true, shortcut: '⇧⌘Z' },
+                  'divider',
+                  { label: 'Cut', disabled: true, shortcut: '⌘X' },
+                  { label: 'Copy', disabled: true, shortcut: '⌘C' },
+                  { label: 'Paste', disabled: true, shortcut: '⌘V' }
+                ])}
+              </div>
+              <div 
+                style={menuStyle('view')}
+                onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'view' ? null : 'view'); }}
+                onMouseEnter={() => handleMenuEnter('view')}
+              >
+                View
+                {renderDropdown('view', [
+                  { label: `Toggle ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, action: toggleTheme },
+                  'divider',
+                  { label: 'Enter Full Screen', action: () => document.documentElement.requestFullscreen().catch(() => {}) }
+                ])}
+              </div>
+              <div 
+                style={menuStyle('help')}
+                onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'help' ? null : 'help'); }}
+                onMouseEnter={() => handleMenuEnter('help')}
+              >
+                Help
+                {renderDropdown('help', [
+                  { label: 'Open PM Academy', action: () => toggleWindow('win-academy') },
+                  'divider',
+                  { label: 'Report Issue...', action: () => alert('Please contact support.') }
+                ])}
+              </div>
+            </>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8957e5', fontWeight: 600 }}>
@@ -406,18 +417,29 @@ export default function Desktop() {
         const VERTICAL_SPACING = 85;
         const TOP_MARGIN = 60;
         const MARGIN_X = 20;
+        const GRID_COLS = isMobile ? Math.floor(window.innerWidth / 90) : 0;
 
-        return icons.map((icon) => {
+        return icons.map((icon, index) => {
           let x, y;
-          if (icon.side === 'left') {
-            x = MARGIN_X;
-            y = TOP_MARGIN + (leftCount * VERTICAL_SPACING);
-            leftCount++;
+          
+          if (isMobile) {
+            // Grid layout for mobile
+            const col = index % GRID_COLS;
+            const row = Math.floor(index / GRID_COLS);
+            const gridSpacingX = window.innerWidth / GRID_COLS;
+            x = (col * gridSpacingX) + (gridSpacingX / 2) - 36; // Center icon in its grid cell (36 is half of 72px)
+            y = TOP_MARGIN + (row * VERTICAL_SPACING);
           } else {
-            // position right side using window width minus margin and width
-            x = window.innerWidth - MARGIN_X - 72; // 72 is icon container width
-            y = TOP_MARGIN + (rightCount * VERTICAL_SPACING);
-            rightCount++;
+            // Edge layout for desktop
+            if (icon.side === 'left') {
+              x = MARGIN_X;
+              y = TOP_MARGIN + (leftCount * VERTICAL_SPACING);
+              leftCount++;
+            } else {
+              x = window.innerWidth - MARGIN_X - 72; // 72 is icon container width
+              y = TOP_MARGIN + (rightCount * VERTICAL_SPACING);
+              rightCount++;
+            }
           }
 
           return (

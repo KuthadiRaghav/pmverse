@@ -17,6 +17,13 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [preMaxState, setPreMaxState] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const resizeRef = useRef(null);
 
@@ -156,22 +163,22 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
       }
       transition={{ duration: 0.15, ease: "easeOut" }}
       onMouseDownCapture={onFocus}
-      drag={!isMaximized && !isMinimized}
+      drag={!isMaximized && !isMinimized && !isMobile}
       dragControls={dragControls}
       dragListener={false}
       dragMomentum={false}
       onDragEnd={handleDragEnd}
       style={{
         position: 'absolute',
-        top: isMaximized ? '36px' : 0,
+        top: isMobile ? 0 : (isMaximized ? '36px' : 0),
         left: 0,
-        x: isMaximized ? 0 : xPos,
-        y: isMaximized ? 0 : yPos,
-        width: isMaximized ? '100%' : size.width,
-        height: isMaximized ? 'calc(100% - 36px)' : size.height,
+        x: isMobile || isMaximized ? 0 : xPos,
+        y: isMobile || isMaximized ? 0 : yPos,
+        width: isMobile ? '100vw' : (isMaximized ? '100%' : size.width),
+        height: isMobile ? 'calc(100vh - 80px)' : (isMaximized ? 'calc(100% - 36px)' : size.height),
         backgroundColor: bgColor,
         border: `1px solid ${borderColor}`,
-        borderRadius: isMaximized ? '0px' : '16px',
+        borderRadius: isMobile || isMaximized ? '0px' : '16px',
         boxShadow: shadow,
         display: 'flex',
         flexDirection: 'column',
@@ -195,7 +202,7 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          cursor: isMaximized ? 'default' : 'grab',
+          cursor: isMobile || isMaximized ? 'default' : 'grab',
           userSelect: 'none'
         }}
       >
@@ -214,7 +221,7 @@ export default function Window({ title, children, onClose, onMinimize = () => {}
       </div>
 
       {/* Resize Handles */}
-      {!isMaximized && (
+      {!isMaximized && !isMobile && (
         <>
           <div onMouseDown={(e) => handleResizeStart(e, 'E')} style={{ position: 'absolute', right: 0, top: 0, width: '8px', height: '100%', cursor: 'e-resize' }} />
           <div onMouseDown={(e) => handleResizeStart(e, 'W')} style={{ position: 'absolute', left: 0, top: 0, width: '8px', height: '100%', cursor: 'w-resize' }} />

@@ -23,11 +23,21 @@ export default function NovaMail() {
   const [pendingDecision, setPendingDecision] = useState(null);
   const [coachLoading, setCoachLoading] = useState(false);
   const [draftReply, setDraftReply] = useState('');
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileView, setMobileView] = useState('list');
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Reset selection when switching cases
   useEffect(() => {
     setSelectedId(caseDef.messages[0]?.id || null);
     setPendingDecision(null);
+    setMobileView('list');
   }, [caseId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selected = visibleMessages.find((m) => m.id === selectedId) || visibleMessages[0];
@@ -36,7 +46,7 @@ export default function NovaMail() {
     if (selected) markRead(selected.id);
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const openMessage = (m) => { setSelectedId(m.id); markRead(m.id); setDraftReply(''); };
+  const openMessage = (m) => { setSelectedId(m.id); markRead(m.id); setDraftReply(''); setMobileView('detail'); };
 
   // Compose-and-grade a reply to a stakeholder email
   const renderReplyBox = (m) => {
@@ -347,8 +357,9 @@ export default function NovaMail() {
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', backgroundColor: c.bg, color: c.text, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
       {/* Sidebar: case switcher + message list */}
-      <div style={{ width: '280px', borderRight: `1px solid ${c.border}`, backgroundColor: c.panel, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '14px 16px', borderBottom: `1px solid ${c.border}` }}>
+      {(!isMobile || mobileView === 'list') && (
+        <div style={{ width: isMobile ? '100%' : '280px', borderRight: isMobile ? 'none' : `1px solid ${c.border}`, backgroundColor: c.panel, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${c.border}` }}>
           <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '10px' }}>📥 NovaMail</div>
           {caseList.map((cs, i) => {
             const active = cs.meta.id === caseId;
@@ -414,11 +425,18 @@ export default function NovaMail() {
           })}
         </div>
       </div>
+      )}
 
       {/* Reading pane */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+      {(!isMobile || mobileView === 'detail') && (
+      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px 20px' : '28px 32px' }}>
         {selected ? (
           <div style={{ maxWidth: '640px' }}>
+            {isMobile && (
+              <button onClick={() => setMobileView('list')} style={{ background: 'none', border: 'none', color: c.accent, fontSize: '14px', cursor: 'pointer', marginBottom: '16px', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                ← Back to Inbox
+              </button>
+            )}
             <h2 style={{ margin: '0 0 6px', fontSize: '20px' }}>{selected.subject}</h2>
             <div style={{ fontSize: '13px', color: c.dim, marginBottom: '20px', paddingBottom: '16px', borderBottom: `1px solid ${c.border}` }}>
               <strong style={{ color: c.text }}>{selected.from}</strong> · {selected.role} · {caseDef.meta.company}
@@ -449,6 +467,7 @@ export default function NovaMail() {
           <div style={{ color: c.dim }}>No message selected.</div>
         )}
       </div>
+      )}
     </div>
   );
 }

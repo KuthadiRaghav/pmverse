@@ -46,6 +46,13 @@ const IconMap = {
 export default function PMAcademy() {
   const { theme } = useTheme();
   const dark = theme === 'dark';
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const c = {
     bg: dark ? '#0a0a0c' : '#fcfcfc',
@@ -179,10 +186,10 @@ export default function PMAcademy() {
                            (lesson.type === 'sprint' && !sprintResult);
 
     return (
-      <div style={{ flex: 1, display: 'flex', backgroundColor: c.bg, minHeight: 0, overflow: 'hidden' }}>
+      <div id={isMobile ? "academy-scroll-container" : undefined} style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', backgroundColor: c.bg, minHeight: 0, overflow: isMobile ? 'auto' : 'hidden' }}>
         
         {/* LEFT SIDEBAR: Nav & Vertical Stepper */}
-        <div style={{ width: '280px', backgroundColor: c.bg, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', padding: '32px 24px', overflowY: 'auto' }}>
+        <div style={{ width: isMobile ? '100%' : '280px', flex: isMobile ? 'none' : undefined, backgroundColor: c.bg, borderRight: isMobile ? 'none' : `1px solid ${c.border}`, borderBottom: isMobile ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', padding: '32px 24px', overflowY: isMobile ? 'visible' : 'auto' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', color: c.text, fontWeight: 800, fontSize: '18px' }}>
             <div style={{ padding: '6px', backgroundColor: c.primary, borderRadius: '8px', color: '#fff' }}><BookOpen size={20} /></div>
@@ -254,10 +261,10 @@ export default function PMAcademy() {
         </div>
 
         {/* CENTER CONTENT: Main Workspace */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', backgroundColor: c.bg }}>
+        <div id={isMobile ? undefined : "academy-scroll-container"} style={{ flex: isMobile ? 'none' : 1, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: isMobile ? 'visible' : 'auto', backgroundColor: c.bg }}>
           
           {/* Top Bar (Horizontal segments) */}
-          <div style={{ padding: '24px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${c.border}` }}>
+          <div style={{ padding: isMobile ? '16px 20px' : '24px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${c.border}` }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, maxWidth: '400px' }}>
               <div style={{ display: 'flex', gap: '4px' }}>
                 {selectedSkill.lessons.map((_, idx) => (
@@ -281,7 +288,7 @@ export default function PMAcademy() {
           </div>
 
           {/* Content Area */}
-          <div style={{ flex: 1, padding: '40px 60px 120px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+          <div style={{ flex: 1, padding: isMobile ? '24px 20px 80px' : '40px 60px 120px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
             
             <div style={{ display: 'inline-flex', alignItems: 'center', padding: '6px 12px', backgroundColor: `${c.primary}15`, color: c.primary, borderRadius: '20px', fontSize: '13px', fontWeight: 600, marginBottom: '24px' }}>
               {lesson.type === 'mcq' ? 'Knowledge Check' : lesson.type === 'sprint' ? 'Design Sprint' : lesson.type === 'video' ? 'Video Lesson' : 'Concept Lesson'}
@@ -492,7 +499,7 @@ export default function PMAcademy() {
           </div>
 
           {/* Sticky Bottom Bar */}
-          <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, padding: '24px 60px', backgroundColor: c.bg, borderTop: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
+          <div style={{ position: 'sticky', bottom: 0, left: 0, right: 0, padding: isMobile ? '16px 20px' : '24px 60px', backgroundColor: c.bg, borderTop: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10 }}>
             <div style={{ display: 'flex', gap: '24px', color: c.textDim, fontSize: '14px', fontWeight: 500 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={16} /> {selectedSkill.time || '15 mins'}</span>
             </div>
@@ -531,16 +538,16 @@ export default function PMAcademy() {
     const heroBg = gradients[selectedDomainIndex % gradients.length];
 
     return (
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div id={isMobile ? "academy-scroll-container" : undefined} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flex: 1, minHeight: 0, overflow: isMobile ? 'auto' : 'hidden' }}>
         {/* Sidebar */}
-        <div style={{ width: '300px', backgroundColor: c.panel, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+        <div style={{ width: isMobile ? '100%' : '300px', flex: isMobile ? 'none' : undefined, backgroundColor: c.panel, borderRight: isMobile ? 'none' : `1px solid ${c.border}`, borderBottom: isMobile ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
           <div style={{ padding: '40px 24px 24px 24px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '800', color: c.text, margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ padding: '8px', backgroundColor: c.primaryHover, borderRadius: '8px', color: c.primary }}><BookOpen size={24} /></div>
               PM Academy
             </h2>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 32px 16px' }}>
+          <div style={{ flex: isMobile ? 'none' : 1, overflowY: isMobile ? 'visible' : 'auto', padding: '0 16px 32px 16px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.textDim, marginBottom: '16px', paddingLeft: '8px' }}>
               Curriculum
             </div>
@@ -584,11 +591,11 @@ export default function PMAcademy() {
         </div>
 
         {/* Main Content */}
-        <div style={{ flex: 1, backgroundColor: c.bg, overflowY: 'auto' }}>
+        <div id={isMobile ? undefined : "academy-scroll-container"} style={{ flex: isMobile ? 'none' : 1, backgroundColor: c.bg, overflowY: isMobile ? 'visible' : 'auto' }}>
           {domain ? (
             <div className="animate-fade-in" key={domain.title}>
               {/* Hero Section */}
-              <div style={{ padding: '80px 56px', background: heroBg, borderBottom: `1px solid ${c.border}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ padding: isMobile ? '40px 24px' : '80px 56px', background: heroBg, borderBottom: `1px solid ${c.border}`, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '50%', background: `linear-gradient(90deg, transparent 0%, ${c.bg} 100%)`, opacity: 0.5 }} />
                 
                 <div style={{ position: 'relative', zIndex: 1 }}>
@@ -620,8 +627,8 @@ export default function PMAcademy() {
               </div>
 
               {/* Skills Grid */}
-              <div style={{ padding: '56px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '32px' }}>
+              <div style={{ padding: isMobile ? '24px' : '56px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '32px' }}>
                   {domain.skills && domain.skills.map((skill, idx) => {
                     const isCompleted = isSkillComplete(skill.id);
                     return (
@@ -718,16 +725,16 @@ export default function PMAcademy() {
     const pct = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
     return (
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div id={isMobile ? "academy-scroll-container" : undefined} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flex: 1, minHeight: 0, overflow: isMobile ? 'auto' : 'hidden' }}>
         {/* Sidebar */}
-        <div style={{ width: '300px', backgroundColor: c.panel, borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+        <div style={{ width: isMobile ? '100%' : '300px', flex: isMobile ? 'none' : undefined, backgroundColor: c.panel, borderRight: isMobile ? 'none' : `1px solid ${c.border}`, borderBottom: isMobile ? `1px solid ${c.border}` : 'none', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
           <div style={{ padding: '40px 24px 24px 24px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '800', color: c.text, margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ padding: '8px', backgroundColor: c.primaryHover, borderRadius: '8px', color: c.primary }}><BookOpen size={24} /></div>
               PM Academy
             </h2>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 32px 16px' }}>
+          <div style={{ flex: isMobile ? 'none' : 1, overflowY: isMobile ? 'visible' : 'auto', padding: '0 16px 32px 16px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: c.textDim, marginBottom: '16px', paddingLeft: '8px' }}>
               Curriculum
             </div>
@@ -771,9 +778,9 @@ export default function PMAcademy() {
         </div>
       
         {/* Main Workspace */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: c.bg, position: 'relative', overflowY: 'auto' }}>
+        <div id={isMobile ? undefined : "academy-scroll-container"} style={{ flex: isMobile ? 'none' : 1, display: 'flex', flexDirection: 'column', backgroundColor: c.bg, position: 'relative', overflowY: isMobile ? 'visible' : 'auto' }}>
         {/* Header */}
-        <div style={{ padding: '40px 56px 20px', display: 'flex', gap: '32px' }}>
+        <div style={{ padding: isMobile ? '24px 24px 16px' : '40px 56px 20px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '32px' }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `linear-gradient(135deg, ${c.primary}, #ec4899)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: `0 4px 20px ${c.primary}40` }}>
@@ -784,7 +791,7 @@ export default function PMAcademy() {
             <p style={{ margin: 0, fontSize: '16px', color: c.textDim, lineHeight: 1.6, maxWidth: '600px' }}>
               Master the core concepts of case studies with interactive scenarios and real-world breakdowns.
             </p>
-            <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '24px' }}>
               <span style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: c.panel, border: `1px solid ${c.border}`, fontSize: '13px', fontWeight: 600, color: c.text, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BookOpen size={16} color={c.primary} /> Real-world Scenarios
               </span>
@@ -797,7 +804,7 @@ export default function PMAcademy() {
             </div>
           </div>
           
-          <div style={{ width: '320px', backgroundColor: c.panel, borderRadius: '16px', padding: '24px', border: `1px solid ${c.border}` }}>
+          <div style={{ width: isMobile ? '100%' : '320px', backgroundColor: c.panel, borderRadius: '16px', padding: '24px', border: `1px solid ${c.border}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span style={{ fontSize: '15px', fontWeight: 700, color: c.text }}>Domain Mastery</span>
               <span style={{ fontSize: '15px', fontWeight: 800, color: c.primary }}>{pct}%</span>
@@ -812,7 +819,7 @@ export default function PMAcademy() {
         </div>
 
         {/* Grid */}
-        <div style={{ padding: '40px 56px' }}>
+        <div style={{ padding: isMobile ? '24px' : '40px 56px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 600, color: c.text, margin: 0 }}>Your Case Studies</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: c.textDim, fontSize: '14px' }}>
@@ -824,7 +831,7 @@ export default function PMAcademy() {
             </div>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
             {domain.skills.map((caseStudy) => {
               const isCompleted = isSkillComplete(caseStudy.id);
               const iconEl = IconMap[caseStudy.icon] || <BookOpen size={20} />;

@@ -43,6 +43,15 @@ export default function NovaChat() {
   const [pending, setPending] = useState(false);
   const feedRef = useRef(null);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileView, setMobileView] = useState('list');
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const dark = theme === 'dark';
   const c = {
     bg: dark ? '#1a1d21' : '#ffffff',
@@ -65,6 +74,7 @@ export default function NovaChat() {
   const handleSelectChannel = (ch) => {
     setActiveChannelId(ch.id);
     if (!state.readChats?.includes(ch.id)) markChatRead(ch.id);
+    setMobileView('detail');
   };
 
   useEffect(() => {
@@ -130,7 +140,8 @@ export default function NovaChat() {
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', backgroundColor: c.bg, color: c.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {/* Sidebar */}
-      <div style={{ width: '240px', backgroundColor: '#3F0E40', color: '#d1d2d3', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      {(!isMobile || mobileView === 'list') && (
+      <div style={{ width: isMobile ? '100%' : '240px', backgroundColor: '#3F0E40', color: '#d1d2d3', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ fontWeight: 900, fontSize: '18px', color: '#fff' }}>NovaChat</div>
           <div style={{ fontSize: '13px', marginTop: '4px', opacity: 0.8 }}>{caseDef?.meta?.company} Workspace</div>
@@ -156,11 +167,18 @@ export default function NovaChat() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Main */}
-      {activeChannel ? (
+      {(!isMobile || mobileView === 'detail') && (
+      activeChannel ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <div style={{ padding: '14px 24px', borderBottom: `1px solid ${c.border}`, backgroundColor: c.bg, fontWeight: 800, fontSize: '16px' }}>
+          <div style={{ padding: '14px 24px', borderBottom: `1px solid ${c.border}`, backgroundColor: c.bg, fontWeight: 800, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {isMobile && (
+              <button onClick={() => setMobileView('list')} style={{ background: 'none', border: 'none', color: c.accent, fontSize: '14px', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                ← Back
+              </button>
+            )}
             {activeChannel.channel}
           </div>
 
@@ -226,6 +244,7 @@ export default function NovaChat() {
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.textMuted }}>
           No channels yet — accept the case in NovaMail to meet the team.
         </div>
+      )
       )}
     </div>
   );
