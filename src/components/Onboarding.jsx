@@ -4,16 +4,34 @@ import { useTokens } from '../theme';
 
 export default function Onboarding({ onComplete }) {
   const c = useTokens();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(0); // 0: Intake, 1: Boot, 2: Welcome
+  const [level, setLevel] = useState('');
+  const [bootText, setBootText] = useState('INITIALIZING SYSTEM KERNEL...');
 
   useEffect(() => {
-    // Sequence timing
-    const t1 = setTimeout(() => setStep(1), 2000); // Boot sequence -> Welcome dialog
-    return () => clearTimeout(t1);
-  }, []);
+    if (step === 1) {
+      const msgs = [
+        "Connecting to corporate intranet...",
+        "Provisioning workspace...",
+        "Loading NovaMail..."
+      ];
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < msgs.length) {
+          setBootText(msgs[i]);
+          i++;
+        }
+      }, 700);
 
-  const handleStart = () => {
-    setStep(2); // Move to highlight step
+      const t = setTimeout(() => setStep(2), 3000);
+      return () => { clearInterval(interval); clearTimeout(t); };
+    }
+  }, [step]);
+
+  const handleSelectLevel = (selectedLevel) => {
+    localStorage.setItem('pmverse_level', selectedLevel);
+    setLevel(selectedLevel);
+    setStep(1); // Move to Boot sequence
   };
 
   const handleFinish = () => {
@@ -21,12 +39,55 @@ export default function Onboarding({ onComplete }) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: step === 2 ? 'none' : 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'auto' }}>
       <AnimatePresence>
+        {/* Step 0: Intake */}
         {step === 0 && (
           <motion.div
+            key="intake"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ position: 'absolute', inset: 0, backgroundColor: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <div style={{ width: '420px', textAlign: 'center' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '16px', backgroundColor: 'rgba(137,87,229,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <span style={{ fontSize: '32px' }}>🎯</span>
+              </div>
+              <h1 style={{ margin: '0 0 12px', fontSize: '28px', fontWeight: 800, color: c.text }}>Before we begin...</h1>
+              <p style={{ margin: '0 0 32px', fontSize: '15px', lineHeight: 1.6, color: c.dim }}>
+                What is your current Product Management experience level? We'll tailor your first case accordingly.
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {['Aspiring PM', 'Mid-level PM', 'Senior / Product Leader'].map(lvl => (
+                  <button
+                    key={lvl}
+                    onClick={() => handleSelectLevel(lvl)}
+                    style={{ 
+                      width: '100%', padding: '16px', borderRadius: '12px', border: `1px solid ${c.border}`, 
+                      backgroundColor: c.panel, color: c.text, fontSize: '15px', fontWeight: 600, 
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = c.accent; e.currentTarget.style.backgroundColor = 'rgba(137,87,229,0.05)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = c.border; e.currentTarget.style.backgroundColor = c.panel; }}
+                  >
+                    {lvl} <span>→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 1: Boot Sequence */}
+        {step === 1 && (
+          <motion.div
             key="boot"
-            initial={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
             style={{ position: 'absolute', inset: 0, backgroundColor: '#0d1117', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
@@ -45,12 +106,13 @@ export default function Onboarding({ onComplete }) {
               transition={{ delay: 0.8, duration: 0.5 }}
               style={{ marginTop: '24px', fontSize: '13px', color: '#8b949e', fontFamily: 'monospace' }}
             >
-              INITIALIZING SYSTEM KERNEL...
+              {bootText}
             </motion.div>
           </motion.div>
         )}
 
-        {step === 1 && (
+        {/* Step 2: Welcome / VP Message */}
+        {step === 2 && (
           <motion.div
             key="welcome"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -62,44 +124,26 @@ export default function Onboarding({ onComplete }) {
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'rgba(137,87,229,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                 <span style={{ fontSize: '24px' }}>👋</span>
               </div>
-              <h1 style={{ margin: '0 0 12px', fontSize: '24px', fontWeight: 700, color: c.text }}>Welcome to PMverse</h1>
+              <h1 style={{ margin: '0 0 12px', fontSize: '24px', fontWeight: 700, color: c.text }}>Welcome to your first day.</h1>
               <p style={{ margin: '0 0 24px', fontSize: '15px', lineHeight: 1.6, color: c.dim }}>
-                You are about to simulate the role of a Product Manager. Your primary communication channel is <strong>NovaMail</strong>. 
-                <br /><br />
-                Stakeholders will send you emails with problems, data, and decisions. It's up to you to investigate and decide the fate of the product.
+                {level === 'Senior / Product Leader' ? (
+                  <>We need your expertise immediately. Stakeholders are already escalating issues to your inbox in <strong>NovaMail</strong>. Review the data and make the call.</>
+                ) : level === 'Mid-level PM' ? (
+                  <>Ready to hit the ground running? Your team is waiting for direction. Check <strong>NovaMail</strong> for your first assignment—it's time to investigate.</>
+                ) : (
+                  <>We throw our new PMs right into the fire here. Your first real-world case study is waiting in <strong>NovaMail</strong>. It's up to you to investigate and decide the fate of the product.</>
+                )}
               </p>
               <button
-                onClick={handleStart}
+                onClick={handleFinish}
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', backgroundColor: c.accent, color: '#fff', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}
               >
-                Boot System
+                Boot Workspace
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Highlight Overlay - explicitly targets the Mail icon position */}
-      {step === 2 && (
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', pointerEvents: 'auto' }}>
-          <div style={{ position: 'absolute', top: '120px', left: '20px', width: '220px', color: '#fff' }}>
-            <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '8px' }}>Open your inbox</div>
-            <div style={{ fontSize: '13px', opacity: 0.8, lineHeight: 1.4 }}>You have a new message from the CEO waiting for you.</div>
-            <button
-              onClick={handleFinish}
-              style={{ marginTop: '12px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.3)', backgroundColor: 'transparent', color: '#fff', fontSize: '12px', cursor: 'pointer' }}
-            >
-              Got it
-            </button>
-          </div>
-          {/* Pulsing ring around where the NovaMail icon is (assuming side="left", 2nd icon) */}
-          <motion.div
-            animate={{ boxShadow: ['0 0 0 0px rgba(137,87,229,0.8)', '0 0 0 20px rgba(137,87,229,0)'] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            style={{ position: 'absolute', top: '106px', left: '20px', width: '80px', height: '80px', borderRadius: '12px', border: '2px solid #8957e5', pointerEvents: 'none' }}
-          />
-        </div>
-      )}
     </div>
   );
 }

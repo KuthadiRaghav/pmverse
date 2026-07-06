@@ -49,7 +49,7 @@ export const APPS = [
 
 export default function Desktop() {
   const { theme, toggleTheme } = useTheme();
-  const { unreadCount, unreadChatCount, rank, totalXP, toasts, dismissToast } = useCase();
+  const { unreadCount, unreadChatCount, rank, totalXP, toasts, dismissToast, state } = useCase();
   const { currentUser, logout } = useAuth();
   const [openWindows, setOpenWindows] = useState([]);
   const [minimizedWindows, setMinimizedWindows] = useState([]);
@@ -499,6 +499,14 @@ export default function Desktop() {
                 {activeWindows.includes(icon.appId) && (
                   <div style={{ position: 'absolute', bottom: '-8px', width: '4px', height: '4px', borderRadius: '50%', backgroundColor: theme === 'dark' ? '#c9d1d9' : '#111827' }} />
                 )}
+                {/* Pulsing Coachmark for NovaMail before reading first email */}
+                {icon.id === 'icon-mail' && state.stage === 'arrival' && (
+                  <motion.div
+                    animate={{ boxShadow: ['0 0 0 0px rgba(137,87,229,0.8)', '0 0 0 20px rgba(137,87,229,0)'] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    style={{ position: 'absolute', inset: -2, borderRadius: '16px', border: '2px solid #8957e5', pointerEvents: 'none' }}
+                  />
+                )}
               </div>
               <span style={{
                 fontSize: '11px', fontWeight: 500, textAlign: 'center',
@@ -513,6 +521,41 @@ export default function Desktop() {
       })()}
 
       {showWelcome && <Welcome onDone={() => setShowWelcome(false)} />}
+
+      {/* Zeigarnik Effect Checklist Widget */}
+      {!state.decision && (
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1, duration: 0.5 }}
+          style={{
+            position: 'absolute', top: '60px', right: '20px', width: '280px',
+            backgroundColor: theme === 'dark' ? 'rgba(22, 27, 34, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${theme === 'dark' ? '#30363d' : '#e5e7eb'}`,
+            borderRadius: '12px', padding: '16px', zIndex: 100,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }}
+        >
+          <div style={{ fontSize: '13px', fontWeight: 800, marginBottom: '12px', color: theme === 'dark' ? '#c9d1d9' : '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>📝</span> First Day Checklist
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: theme === 'dark' ? '#8b949e' : '#6b7280' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'line-through', opacity: 0.5 }}>
+              <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#8957e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px' }}>✓</div>
+              Boot up workspace
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: state.stage !== 'arrival' ? 'line-through' : 'none', opacity: state.stage !== 'arrival' ? 0.5 : 1 }}>
+              <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: `1px solid ${state.stage !== 'arrival' ? '#8957e5' : (theme === 'dark' ? '#30363d' : '#e5e7eb')}`, backgroundColor: state.stage !== 'arrival' ? '#8957e5' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px' }}>{state.stage !== 'arrival' && '✓'}</div>
+              Read your first email
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: `1px solid ${theme === 'dark' ? '#30363d' : '#e5e7eb'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}></div>
+              Make your first decision
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Custom Context Menu */}
       <AnimatePresence>

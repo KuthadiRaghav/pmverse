@@ -241,8 +241,18 @@ export default function NovaChat() {
           </div>
         </div>
       ) : (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.textMuted }}>
-          No channels yet — accept the case in NovaMail to meet the team.
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: c.textMuted }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤫</div>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: c.text, marginBottom: '8px' }}>It's quiet in here... almost too quiet.</div>
+          <div style={{ fontSize: '14px', marginBottom: '24px', maxWidth: '300px', textAlign: 'center', lineHeight: 1.5 }}>
+            The team usually invites you to channels after you accept a project.
+          </div>
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('pmverse:open-app', { detail: 'win-mail' }))}
+            style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#8957e5', color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+          >
+            Open NovaMail
+          </button>
         </div>
       )
       )}

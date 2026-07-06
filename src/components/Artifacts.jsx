@@ -96,6 +96,20 @@ export default function Artifacts() {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.markdown}</ReactMarkdown>
             </div>
           </>
+        ) : all.length === 0 ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: c.dim }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📁</div>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: c.text, marginBottom: '8px' }}>Your portfolio is a blank slate.</div>
+            <div style={{ fontSize: '14px', marginBottom: '24px', maxWidth: '300px', textAlign: 'center', lineHeight: 1.5 }}>
+              As you complete cases and sprints, your reports will be saved here automatically. Time to get to work!
+            </div>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('pmverse:open-app', { detail: 'win-mail' }))}
+              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#8957e5', color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+            >
+              Open NovaMail
+            </button>
+          </div>
         ) : (
           <div style={{ padding: '40px', color: c.dim }}>Select an artifact.</div>
         )}

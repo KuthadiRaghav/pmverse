@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useCase } from '../case/CaseContext';
@@ -451,13 +452,27 @@ export default function NovaMail() {
 
             {selected.replyPrompt && renderReplyBox(selected)}
             {selected.cta?.type === 'accept' && state.stage === 'arrival' && !selected.replyPrompt && (
-              <button onClick={acceptCase} style={btnStyle(c, 'primary')}>{selected.cta.label}</button>
+              <div style={{ position: 'relative', display: 'inline-block', marginTop: '20px' }}>
+                <button onClick={acceptCase} style={{ ...btnStyle(c, 'primary'), marginTop: 0 }}>{selected.cta.label}</button>
+                <motion.div
+                  animate={{ boxShadow: ['0 0 0 0px rgba(137,87,229,0.8)', '0 0 0 20px rgba(137,87,229,0)'] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  style={{ position: 'absolute', inset: 0, borderRadius: '8px', border: '2px solid #8957e5', pointerEvents: 'none' }}
+                />
+              </div>
             )}
             {(selected.cta?.type === 'accept' || selected.cta?.type === 'accept-and-open') && state.stage !== 'arrival' && !selected.replyPrompt && (
               <div style={{ marginTop: '16px', fontSize: '13px', color: c.good }}>✓ You accepted the case.</div>
             )}
             {selected.cta?.type === 'accept-and-open' && state.stage === 'arrival' && (
-              <button onClick={() => { acceptCase(); openApp(selected.cta.app); }} style={btnStyle(c, 'primary')}>{selected.cta.label}</button>
+              <div style={{ position: 'relative', display: 'inline-block', marginTop: '20px' }}>
+                <button onClick={() => { acceptCase(); openApp(selected.cta.app); }} style={{ ...btnStyle(c, 'primary'), marginTop: 0 }}>{selected.cta.label}</button>
+                <motion.div
+                  animate={{ boxShadow: ['0 0 0 0px rgba(137,87,229,0.8)', '0 0 0 20px rgba(137,87,229,0)'] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  style={{ position: 'absolute', inset: 0, borderRadius: '8px', border: '2px solid #8957e5', pointerEvents: 'none' }}
+                />
+              </div>
             )}
             {selected.cta?.type === 'open-app' && (
               <button onClick={() => openApp(selected.cta.app)} style={btnStyle(c, 'primary')}>{selected.cta.label}</button>

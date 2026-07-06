@@ -62,6 +62,23 @@ export default function NovaMetrics() {
     };
 
     if (metrics.length === 0) {
+      if (state.stage === 'arrival') {
+        return (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📈</div>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: t.text, marginBottom: '8px' }}>Metrics dashboard offline.</div>
+            <div style={{ fontSize: '14px', marginBottom: '24px', maxWidth: '300px', textAlign: 'center', lineHeight: 1.5, color: t.dim }}>
+              The data team is waiting for you to accept your first project before spinning up your dashboards.
+            </div>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('pmverse:open-app', { detail: 'win-mail' }))}
+              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', backgroundColor: '#8957e5', color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+            >
+              Open NovaMail
+            </button>
+          </div>
+        );
+      }
       return <EmptyState icon="📈" title="No metrics for this case" body="This case doesn't track quantitative KPIs." />;
     }
 
