@@ -125,7 +125,7 @@ export default function ResetPassword({ oobCode }) {
             marginBottom: '32px',
             boxShadow: `0 8px 16px rgba(139, 92, 246, 0.3)`
           }}>
-            <Compass size={24} color="#ffffff" />
+            <img src="/favicon.jpg" alt="PMverse Mascot" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} />
           </div>
 
           <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
@@ -166,7 +166,7 @@ export default function ResetPassword({ oobCode }) {
               width: '40px', height: '40px', borderRadius: '10px', backgroundColor: brandPurple,
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <Compass size={20} color="#ffffff" />
+              <img src="/favicon.jpg" alt="PMverse Mascot" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '10px' }} />
             </div>
             <span style={{ fontSize: '20px', fontWeight: 700 }}>PMverse</span>
           </div>

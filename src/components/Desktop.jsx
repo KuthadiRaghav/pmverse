@@ -282,7 +282,10 @@ export default function Desktop() {
             onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === 'pmverse' ? null : 'pmverse'); }}
             onMouseEnter={() => handleMenuEnter('pmverse')}
           >
-            PMverse
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img src="/favicon.jpg" alt="Mascot" style={{ width: '14px', height: '14px', borderRadius: '3px', marginRight: '6px' }} />
+              PMverse
+            </div>
             {renderDropdown('pmverse', [
               { label: 'About PMverse', action: () => alert('PMverse v1.0.0') },
               'divider',
