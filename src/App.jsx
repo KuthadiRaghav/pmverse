@@ -8,6 +8,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import VerifyEmail from './components/VerifyEmail';
 import ProcessingVerification from './components/ProcessingVerification';
+import ResetPassword from './components/ResetPassword';
 import ErrorBoundary from './ErrorBoundary';
 import './App.css';
 
@@ -23,6 +24,10 @@ function AuthRouter() {
 
   if (mode === 'verifyEmail' && oobCode) {
     return <ProcessingVerification oobCode={oobCode} />;
+  }
+
+  if (mode === 'resetPassword' && oobCode) {
+    return <ResetPassword oobCode={oobCode} />;
   }
 
   useEffect(() => {
