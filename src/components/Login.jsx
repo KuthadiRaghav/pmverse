@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 
 import { auth } from '../firebase';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../ThemeContext';
+import { getFriendlyErrorMessage } from '../utils/firebaseErrors';
 
 export default function Login({ onSwitchToSignup }) {
   const { theme } = useTheme();
@@ -43,7 +44,7 @@ export default function Login({ onSwitchToSignup }) {
       await signInWithEmailAndPassword(auth, email, password);
       // AuthContext will handle the redirect via onAuthStateChanged
     } catch (err) {
-      setError(err.message || 'Failed to log in');
+      setError(getFriendlyErrorMessage(err));
     }
     setLoading(false);
   };
@@ -58,11 +59,7 @@ export default function Login({ onSwitchToSignup }) {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (err) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in popup was closed. Please try again.');
-      } else {
-        setError(err.message || 'Failed to login with Google');
-      }
+      setError(getFriendlyErrorMessage(err));
     }
     setLoading(false);
   };
