@@ -148,12 +148,11 @@ export default function Signup({ onSwitchToLogin }) {
           </div>
 
           <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
-            Master your craft <span role="img" aria-label="rocket">🚀</span><br/>
-            in <span style={{ color: brandPurple }}>PMverse</span>
+            Fast-track your PM career 📈
           </h1>
           
           <p style={{ color: secondaryText, margin: '0 0 40px 0', fontSize: '15px', lineHeight: '1.5', maxWidth: '80%' }}>
-            Join the next generation of product managers and organize your workflow today.
+            Stop guessing. Start practicing with real-world scenarios to ace your interviews and land your dream PM role.
           </p>
 
           <div style={{

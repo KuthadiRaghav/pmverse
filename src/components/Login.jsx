@@ -141,12 +141,11 @@ export default function Login({ onSwitchToSignup }) {
           </div>
 
           <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
-            Welcome back <span role="img" aria-label="wave">👋</span><br/>
-            to <span style={{ color: brandPurple }}>PMverse</span>
+            Ready to level up? ⚡️
           </h1>
           
           <p style={{ color: secondaryText, margin: '0 0 40px 0', fontSize: '15px', lineHeight: '1.5', maxWidth: '80%' }}>
-            Sign in to continue your product journey and pick up where you left off.
+            Sign in to access your workspace, track your progress, and take the next step in your career.
           </p>
 
           <div style={{
