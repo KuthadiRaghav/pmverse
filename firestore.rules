@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper function to check if the requester is an admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // ----------------------------------------------------------------------
+    // users: Player Profiles & Global Leaderboard
+    // ----------------------------------------------------------------------
+    match /users/{userId} {
+      // Anyone can read (required for the global leaderboard to function)
+      allow read: if true;
+      
+      // Users can only create/update their own profile
+      allow create: if request.auth != null && request.auth.uid == userId 
+                    // Prevent users from setting themselves as admin on creation
+                    && !("isAdmin" in request.resource.data);
+                    
+      allow update: if request.auth != null && request.auth.uid == userId 
+                    // Prevent users from escalating privileges on update.
+                    // They either don't send isAdmin, or if they do, it must equal their existing value.
+                    && (!("isAdmin" in request.resource.data) || request.resource.data.isAdmin == resource.data.isAdmin);
+                    
+      allow delete: if false; // Admins must delete via console or Cloud Functions
+    }
+
+    // ----------------------------------------------------------------------
+    // customCases: B2B Case Definitions created in Admin Portal
+    // ----------------------------------------------------------------------
+    match /customCases/{caseId} {
+      // Anyone can read a custom case (needed for magic links to load the JSON)
+      allow read: if true;
+      
+      // Only admins can create, update, or delete cases
+      allow write: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // candidateSessions: Private Candidate Evaluations
+    // ----------------------------------------------------------------------
+    match /candidateSessions/{sessionId} {
+      // Only admins can read the candidate sessions (B2B privacy)
+      allow read: if isAdmin();
+      
+      // Candidates can create/update their own sessions
+      // We enforce that the document payload contains their actual uid.
+      allow create, update: if request.auth != null 
+                            && request.resource.data.uid == request.auth.uid;
+                            
+      allow delete: if isAdmin();
+    }
+  }
+}

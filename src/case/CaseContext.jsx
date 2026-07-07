@@ -7,6 +7,7 @@ import { recordActivity } from '../academyProgress';
 import { playChime } from '../soundEngine';
 import { useAuth } from '../auth/AuthContext';
 import { useMemo } from 'react';
+import { db } from '../firebase';
 
 // The Case Engine context: multi-case state (per-case persistence), the active
 // case definition, XP (per-case and cumulative), derived artifacts, real-time
@@ -45,6 +46,28 @@ function loadAllStates() {
 export function CaseProvider({ children }) {
   const { currentUser } = useAuth();
   const playerName = currentUser?.displayName?.split(' ')[0] || 'Alex';
+  const evaluateId = new URLSearchParams(window.location.search).get('evaluate');
+
+  const [customCaseDef, setCustomCaseDef] = useState(null);
+  const [states, setStates] = useState(loadAllStates);
+
+  useEffect(() => {
+    if (!evaluateId) return;
+    async function loadCustom() {
+      try {
+        const { getDoc, doc } = await import('firebase/firestore');
+        const snap = await getDoc(doc(db, 'customCases', evaluateId));
+        if (snap.exists()) {
+          const def = snap.data();
+          setCustomCaseDef(def);
+          setStates(prev => ({ ...prev, [def.meta.id]: initialState(def) }));
+        }
+      } catch (err) {
+        console.error("Failed to load custom case", err);
+      }
+    }
+    loadCustom();
+  }, [evaluateId]);
 
   const { transformedCaseList, transformedCases } = useMemo(() => {
     function replaceNameDeep(obj) {
@@ -71,17 +94,26 @@ export function CaseProvider({ children }) {
       return obj;
     }
     const tList = CASE_LIST.map(c => replaceNameDeep(c));
+    if (customCaseDef) {
+      tList.push(replaceNameDeep(customCaseDef));
+    }
     const tCases = Object.fromEntries(tList.map(c => [c.meta.id, c]));
     return { transformedCaseList: tList, transformedCases: tCases };
-  }, [playerName, currentUser?.displayName]);
+  }, [playerName, currentUser?.displayName, customCaseDef]);
 
   const [caseId, setCaseId] = useState(() => {
+    if (evaluateId) return evaluateId;
     try {
       const saved = localStorage.getItem(ACTIVE_KEY);
       return saved && CASES[saved] ? saved : DEFAULT_CASE_ID;
     } catch { return DEFAULT_CASE_ID; }
   });
-  const [states, setStates] = useState(loadAllStates);
+
+  useEffect(() => {
+    if (evaluateId && customCaseDef && caseId !== evaluateId) {
+      setCaseId(evaluateId);
+    }
+  }, [evaluateId, customCaseDef, caseId]);
   const [now, setNow] = useState(Date.now());
   const [toasts, setToasts] = useState([]);
 
@@ -165,6 +197,53 @@ export function CaseProvider({ children }) {
     .filter(Boolean);
 
   const companyHealth = computeCompanyHealth(transformedCaseList, states);
+
+  // ----- Leaderboard Sync -----
+  useEffect(() => {
+    const syncLeaderboard = async () => {
+      if (!currentUser || currentUser.uid === 'mock-uid' || !db) return;
+      try {
+        let total = 0;
+        const dims = { Discovery: 0, Analytics: 0, Strategy: 0, Leadership: 0, Communication: 0 };
+        transformedCaseList.forEach(c => {
+          const st = states[c.meta.id];
+          // We only sync XP for cases that are 'complete'
+          if (st && st.stage === 'complete') {
+            const caseXP = computeXP(c, st);
+            total += xpTotal(caseXP);
+            Object.keys(dims).forEach(k => {
+              if (caseXP[k]) dims[k] += caseXP[k];
+            });
+          }
+        });
+        
+        const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+        if (evaluateId) {
+          await setDoc(doc(db, 'candidateSessions', `${currentUser.uid}_${evaluateId}`), {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName || playerName,
+            totalXP: total,
+            dimensions: dims,
+            caseId: evaluateId,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        } else {
+          await setDoc(doc(db, 'users', currentUser.uid), {
+            displayName: currentUser.displayName || playerName,
+            totalXP: total,
+            dimensions: dims,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+      } catch (e) {
+        console.error("Leaderboard sync failed", e);
+      }
+    };
+    
+    // Debounce the sync
+    const t = setTimeout(syncLeaderboard, 3000);
+    return () => clearTimeout(t);
+  }, [totalXP, currentUser, playerName, transformedCaseList, states]);
 
   // ----- progression gates: case N unlocks when case N-1 is decided.
   // A case you've already started or finished never re-locks (e.g. after

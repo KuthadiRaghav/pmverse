@@ -2,7 +2,7 @@ import React from 'react';
 import { useTokens, ACCENT } from '../theme';
 import { useCase } from '../case/CaseContext';
 import { useAuth } from '../auth/AuthContext';
-import { CheckCircle2, Play, BookOpen, Terminal, Database, MessageSquare, ListTodo, Map } from 'lucide-react';
+import { CheckCircle2, Play, BookOpen, Terminal, Database, MessageSquare, ListTodo, Map, Trophy } from 'lucide-react';
 import heroImage from '../assets/readme_hero.jpg';
 
 export const ONBOARD_KEY = 'pmverse_onboarded_v1';
@@ -177,6 +177,16 @@ export default function Readme() {
               </div>
               <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
                 A visual scatter plot for high-level strategic planning. Use this when you need to evaluate multiple roadmap initiatives by weighing their expected Impact against their anticipated Effort.
+              </p>
+            </div>
+
+            <div style={{ padding: '20px', borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={appIconStyle}><Trophy size={18} /></div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>NovaRank Leaderboard</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: t.dim, margin: 0, lineHeight: 1.5 }}>
+                The global PMverse leaderboard. Ranks are based on evidence gathered, models built, and decisions made across various dimensions like Analytics, Strategy, and Leadership.
               </p>
             </div>
           </div>

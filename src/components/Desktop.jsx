@@ -18,6 +18,7 @@ import PromptLab from './PromptLab';
 import FileExplorer from './FileExplorer';
 import desktopBg from '../assets/desktop_bg.jpg';
 import Readme, { ONBOARD_KEY } from './Readme';
+import Leaderboard from './Leaderboard';
 import { useTheme } from '../ThemeContext';
 import { useCase } from '../case/CaseContext';
 import { useAuth } from '../auth/AuthContext';
@@ -46,7 +47,8 @@ export const APPS = [
   { id: 'win-portfolio', title: 'Portfolio Map', Component: PortfolioMap, defaultSize: { w: 900, h: 600 } },
   { id: 'win-ide', title: 'NovaCode IDE', Component: NovaIDE, defaultSize: { w: 900, h: 600 } },
   { id: 'win-drive', title: 'Company Drive', Component: FileExplorer, defaultSize: { w: 850, h: 600 } },
-  { id: 'win-readme', title: 'README.md', Component: Readme, defaultSize: { w: 750, h: 700 } }
+  { id: 'win-readme', title: 'README.md', Component: Readme, defaultSize: { w: 750, h: 700 } },
+  { id: 'win-leaderboard', title: 'NovaRank', Component: Leaderboard, defaultSize: { w: 850, h: 650 } }
 ];
 
 export default function Desktop() {
@@ -419,6 +421,7 @@ export default function Desktop() {
           { id: 'icon-artifacts', title: 'Portfolio', Icon: Folder, bg: 'linear-gradient(135deg, #c084fc, #9333ea)', type: 'app', appId: 'win-artifacts', side: 'left' },
           { id: 'icon-career', title: 'Career', Icon: User, bg: 'linear-gradient(135deg, #fb923c, #ea580c)', type: 'app', appId: 'win-career', side: 'left' },
           { id: 'icon-promptlab', title: 'PromptLab', Icon: FlaskConical, bg: 'linear-gradient(135deg, #a3e635, #65a30d)', type: 'app', appId: 'win-promptlab', side: 'left' },
+          { id: 'icon-leaderboard', title: 'NovaRank', Icon: Trophy, bg: 'linear-gradient(135deg, #eab308, #ca8a04)', type: 'app', appId: 'win-leaderboard', side: 'left' },
           
           // Right Column
           { id: 'icon-readme', title: 'README.md', Icon: FileText, bg: 'linear-gradient(135deg, #fbbf24, #d97706)', type: 'app', appId: 'win-readme', side: 'right' },
