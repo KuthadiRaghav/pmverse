@@ -7,6 +7,7 @@ export const XP_DIMS = ['Discovery', 'Analytics', 'Strategy', 'Leadership', 'Com
 
 // Cumulative across all cases (each case maxes ~400)
 export const RANKS = [
+  [700, 'Nova'],
   [560, 'VP of Product'],
   [420, 'Group PM'],
   [280, 'Senior PM'],

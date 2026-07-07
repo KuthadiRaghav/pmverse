@@ -352,7 +352,10 @@ export default function Desktop() {
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8957e5', fontWeight: 600 }}>
+          <div 
+            onClick={() => toggleWindow('win-leaderboard')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8957e5', fontWeight: 600, cursor: 'pointer' }}
+          >
             <Trophy size={14} /> {rank} · {totalXP} XP
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#d97706', fontWeight: 600 }}>
@@ -755,6 +758,14 @@ export default function Desktop() {
           return (
             <Window key={winId} title={app.title} onClose={() => closeWindow(winId)} onMinimize={() => minimizeWindow(winId)} isMinimized={minimizedWindows.includes(winId)} initialWidth={700} initialHeight={500} x={100} y={100} zIndex={zIndex} isFocused={isFocused} onFocus={() => focusWindow(winId)}>
               <GrowthSAT />
+            </Window>
+          );
+        }
+
+        if (winId === 'win-leaderboard') {
+          return (
+            <Window key={winId} title={app.title} onClose={() => closeWindow(winId)} onMinimize={() => minimizeWindow(winId)} isMinimized={minimizedWindows.includes(winId)} initialWidth={850} initialHeight={650} x={150} y={100} zIndex={zIndex} isFocused={isFocused} onFocus={() => focusWindow(winId)}>
+              <Leaderboard />
             </Window>
           );
         }

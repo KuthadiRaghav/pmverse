@@ -153,7 +153,7 @@ export default function Leaderboard() {
                     {rankFor(leader.totalXP || 0)}
                   </div>
                   <div style={{ textAlign: 'right', fontWeight: 700, color: ACCENT, fontFamily: 'monospace', fontSize: '15px' }}>
-                    {value.toLocaleString()} XP
+                    {(value || 0).toLocaleString()} XP
                   </div>
                 </div>
               );
