@@ -14,6 +14,7 @@ import NovaMetrics from './NovaMetrics';
 import Artifacts from './Artifacts';
 import CareerProfile from './CareerProfile';
 import PromptLab from './PromptLab';
+import CommunityHub from './apps/CommunityHub';
 
 import FileExplorer from './FileExplorer';
 import desktopBg from '../assets/desktop_bg.jpg';
@@ -27,7 +28,7 @@ import {
   Search, Bell, Moon, Sun, Trophy, Flame, 
   Mail, MessageSquare, BarChart2, Folder, User, FlaskConical, 
   PenTool, GraduationCap, Table, Layout, MessageCircle, Database, Map, 
-  Terminal as TerminalIcon, FileText, Trash2, HardDrive
+  Terminal as TerminalIcon, FileText, Trash2, HardDrive, Crosshair, Globe
 } from 'lucide-react';
 import { getStreak } from '../academyProgress';
 import { playPop, playSwoosh, playChime } from '../soundEngine';
@@ -42,13 +43,15 @@ export const APPS = [
   { id: 'win-academy', title: 'PM Academy', Component: PMAcademy, defaultSize: { w: 800, h: 600 } },
   { id: 'win-sheets', title: 'NovaSheets', Component: NovaSheets, defaultSize: { w: 900, h: 600 } },
   { id: 'win-sprint', title: 'Sprint Board', Component: SprintBoard, defaultSize: { w: 900, h: 600 } },
-  { id: 'win-decide', title: 'Decision Center', Component: DecisionCenter, defaultSize: { w: 600, h: 700 } },
+  { id: 'win-decide', title: 'Decision Center', Component: DecisionCenter, defaultSize: { w: 500, h: 600 } },
   { id: 'win-sql', title: 'NovaData SQL', Component: SqlConsole, defaultSize: { w: 850, h: 600 } },
   { id: 'win-portfolio', title: 'Portfolio Map', Component: PortfolioMap, defaultSize: { w: 900, h: 600 } },
+  { id: 'win-sat', title: 'Growth SAT', Component: GrowthSAT, defaultSize: { w: 700, h: 500 } },
   { id: 'win-ide', title: 'NovaCode IDE', Component: NovaIDE, defaultSize: { w: 900, h: 600 } },
   { id: 'win-drive', title: 'Company Drive', Component: FileExplorer, defaultSize: { w: 850, h: 600 } },
   { id: 'win-readme', title: 'README.md', Component: Readme, defaultSize: { w: 750, h: 700 } },
-  { id: 'win-leaderboard', title: 'NovaRank', Component: Leaderboard, defaultSize: { w: 850, h: 650 } }
+  { id: 'win-leaderboard', title: 'NovaRank', Component: Leaderboard, defaultSize: { w: 850, h: 650 } },
+  { id: 'win-community', title: 'Community Hub', Component: CommunityHub, defaultSize: { w: 900, h: 650 } }
 ];
 
 export default function Desktop() {
@@ -267,8 +270,6 @@ export default function Desktop() {
       overflow: 'hidden',
       color: theme === 'dark' ? '#c9d1d9' : '#111827'
     }}>
-      {/* Desktop Background Logo (Removed for PostHog style) */}
-
       {/* Global OS Top Bar */}
       <div style={{
         position: 'absolute', top: 0, left: 0, width: '100%', height: '36px',
@@ -413,6 +414,7 @@ export default function Desktop() {
       </div>
 
 
+
       {/* Desktop Icons */}
       {showIcons && (() => {
         const icons = [
@@ -423,15 +425,16 @@ export default function Desktop() {
           { id: 'icon-metrics', title: 'NovaMetrics', Icon: BarChart2, bg: 'linear-gradient(135deg, #38bdf8, #0284c7)', type: 'app', appId: 'win-metrics', side: 'left' },
           { id: 'icon-artifacts', title: 'Portfolio', Icon: Folder, bg: 'linear-gradient(135deg, #c084fc, #9333ea)', type: 'app', appId: 'win-artifacts', side: 'left' },
           { id: 'icon-career', title: 'Career', Icon: User, bg: 'linear-gradient(135deg, #fb923c, #ea580c)', type: 'app', appId: 'win-career', side: 'left' },
-          { id: 'icon-promptlab', title: 'PromptLab', Icon: FlaskConical, bg: 'linear-gradient(135deg, #a3e635, #65a30d)', type: 'app', appId: 'win-promptlab', side: 'left' },
+          { id: 'icon-decide', title: 'Decision Center', Icon: Crosshair, bg: 'linear-gradient(135deg, #f43f5e, #be123c)', type: 'app', appId: 'win-decide', side: 'left' },
           { id: 'icon-leaderboard', title: 'NovaRank', Icon: Trophy, bg: 'linear-gradient(135deg, #eab308, #ca8a04)', type: 'app', appId: 'win-leaderboard', side: 'left' },
+          { id: 'icon-community', title: 'Community Hub', Icon: Globe, bg: 'linear-gradient(135deg, #10b981, #059669)', type: 'app', appId: 'win-community', side: 'left' },
           
           // Right Column
           { id: 'icon-readme', title: 'README.md', Icon: FileText, bg: 'linear-gradient(135deg, #fbbf24, #d97706)', type: 'app', appId: 'win-readme', side: 'right' },
           { id: 'icon-academy', title: 'PM Academy', Icon: GraduationCap, bg: 'linear-gradient(135deg, #a78bfa, #7c3aed)', type: 'app', appId: 'win-academy', side: 'right' },
           { id: 'icon-sheets', title: 'NovaSheets', Icon: Table, bg: 'linear-gradient(135deg, #34d399, #059669)', type: 'app', appId: 'win-sheets', side: 'right' },
           { id: 'icon-sprint', title: 'Sprint Board', Icon: Layout, bg: 'linear-gradient(135deg, #60a5fa, #2563eb)', type: 'app', appId: 'win-sprint', side: 'right' },
-          { id: 'icon-decide', title: 'Decision Center', Icon: MessageCircle, bg: 'linear-gradient(135deg, #f87171, #dc2626)', type: 'app', appId: 'win-decide', side: 'right' },
+
           { id: 'icon-sql', title: 'NovaData SQL', Icon: Database, bg: 'linear-gradient(135deg, #2dd4bf, #0d9488)', type: 'app', appId: 'win-sql', side: 'right' },
           { id: 'icon-portfolio', title: 'Portfolio Map', Icon: Map, bg: 'linear-gradient(135deg, #818cf8, #4f46e5)', type: 'app', appId: 'win-portfolio', side: 'right' },
           { id: 'icon-ide', title: 'NovaCode IDE', Icon: TerminalIcon, bg: 'linear-gradient(135deg, #6b7280, #374151)', type: 'app', appId: 'win-ide', side: 'right' },
@@ -766,6 +769,14 @@ export default function Desktop() {
           return (
             <Window key={winId} title={app.title} onClose={() => closeWindow(winId)} onMinimize={() => minimizeWindow(winId)} isMinimized={minimizedWindows.includes(winId)} initialWidth={850} initialHeight={650} x={150} y={100} zIndex={zIndex} isFocused={isFocused} onFocus={() => focusWindow(winId)}>
               <Leaderboard />
+            </Window>
+          );
+        }
+
+        if (winId === 'win-community') {
+          return (
+            <Window key={winId} title={app.title} onClose={() => closeWindow(winId)} onMinimize={() => minimizeWindow(winId)} isMinimized={minimizedWindows.includes(winId)} initialWidth={900} initialHeight={650} x={100} y={100} zIndex={zIndex} isFocused={isFocused} onFocus={() => focusWindow(winId)}>
+              <CommunityHub />
             </Window>
           );
         }

@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,11 +18,22 @@ const firebaseConfig = {
 let app;
 let auth;
 let db;
+let geminiModel;
 
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  
+  // Initialize AI Logic
+  const ai = getAI(app, { backend: new GoogleAIBackend() });
+  geminiModel = getGenerativeModel(ai, {
+    model: 'gemini-1.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.7
+    }
+  });
   
   // Analytics is only initialized if we are in a browser environment
   if (typeof window !== 'undefined') {
@@ -31,4 +43,4 @@ try {
   console.error("Firebase initialization error:", error);
 }
 
-export { auth, db };
+export { auth, db, geminiModel };

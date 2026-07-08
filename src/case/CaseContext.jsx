@@ -286,6 +286,16 @@ export function CaseProvider({ children }) {
     if (message.role === 'user') recordActivity();
   };
 
+  const addDynamicXP = (personaId, xp) => {
+    update((s) => ({
+      ...s,
+      dynamicXP: { 
+        ...(s.dynamicXP || {}), 
+        [personaId]: Math.min(20, Math.max(-20, (s.dynamicXP?.[personaId] || 0) + xp))
+      },
+    }));
+  };
+
   const setMemo = (text) => update((s) => ({ ...s, memo: text }));
 
   const setAiCoach = (text) => update((s) => ({ ...s, aiCoach: text }));
@@ -344,7 +354,7 @@ export function CaseProvider({ children }) {
     state, visibleMessages, unreadCount, unreadChatCount, visibleChats,
     xp, caseTotal, totalXP, rank, artifacts, companyHealth,
     toasts, dismissToast,
-    switchCase, acceptCase, recordEvidence, addChatMessage, setMemo, setAiCoach, saveReply, addChannelPost,
+    switchCase, acceptCase, recordEvidence, addChatMessage, addDynamicXP, setMemo, setAiCoach, saveReply, addChannelPost,
     decide, chooseFollowUp, markRead, markChatRead, resetCase, openApp,
   };
 

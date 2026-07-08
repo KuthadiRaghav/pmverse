@@ -143,6 +143,7 @@ export default function HomeSurface() {
     { icon: <LineChart size={20} color="#fff" />,     title: 'NovaSheets',  sub: 'Impact & unit economics',      app: 'win-sheets',    badge: 0,              color: 'linear-gradient(135deg, #10b981, #059669)' },
     { icon: <Database size={20} color="#fff" />,      title: 'NovaData',    sub: 'SQL data exploration',         app: 'win-sql',       badge: 0,              color: 'linear-gradient(135deg, #14b8a6, #0d9488)' },
     { icon: <User size={20} color="#fff" />,          title: 'Career',      sub: 'Rank & daily challenge',       app: 'win-career',    badge: 0,              color: 'linear-gradient(135deg, #f97316, #c2410c)' },
+    { icon: <Globe size={20} color="#fff" />,         title: 'Community',   sub: 'Play custom cases',            app: 'win-community', badge: 0,              color: 'linear-gradient(135deg, #10b981, #059669)' },
   ];
 
   const cardStyle = {

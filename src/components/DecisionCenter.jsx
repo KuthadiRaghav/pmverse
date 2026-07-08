@@ -4,6 +4,7 @@ import { useCase } from '../case/CaseContext';
 import { INTERVIEWER } from '../case/engine';
 import { hasApiKey, claudeComplete, hasWindowAi, windowAiComplete } from '../ai';
 import { CreateMLCEngine } from '@mlc-ai/web-llm';
+import { geminiModel } from '../firebase';
 
 // Decision Center: talk to the case's stakeholders. Uses an in-browser LLM
 // (WebGPU) grounded in each persona's hidden knowledge; falls back to the
@@ -26,13 +27,13 @@ function scriptedReply(persona, history, userText) {
 
 export default function DecisionCenter() {
   const { theme } = useTheme();
-  const { caseDef, state: caseState, addChatMessage } = useCase();
+  const { caseDef, state: caseState, addChatMessage, addDynamicXP } = useCase();
   const [activeId, setActiveId] = useState(() => Object.keys(caseDef?.personas || {})[0] || 'maya');
   const [inputText, setInputText] = useState('');
   const [isLoadingModel, setIsLoadingModel] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState('');
-  const [mode, setMode] = useState(hasWindowAi() ? 'window-ai' : engineInstance ? 'webgpu' : engineFailed ? 'scripted' : 'standby');
+  const [mode, setMode] = useState(geminiModel ? 'gemini' : hasWindowAi() ? 'window-ai' : engineInstance ? 'webgpu' : engineFailed ? 'scripted' : 'standby');
   const [streaming, setStreaming] = useState(null); // in-flight assistant text
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -117,7 +118,41 @@ export default function DecisionCenter() {
     addChatMessage(personaId, { role: 'user', content: userText });
     setIsGenerating(true);
 
-    // Tier 1: live Claude when the player supplied an API key (Career app → Settings)
+    // Tier 1: Gemini 1.5 Flash (Firebase AI Logic)
+    if (geminiModel) {
+      try {
+        const systemPrompt = `${p.system}\n\nIMPORTANT INSTRUCTION: Evaluate the user's latest message based on their negotiation and PM skills. You MUST reply with a raw JSON object (no markdown formatting, no backticks) with exactly two keys: "reply" (a string containing your conversational response as this persona) and "xp_awarded" (an integer between -5 and +5, where positive is a smart PM point, and negative is a poor/rude one. Use 0 if neutral).`;
+        const contextMessages = [
+          ...priorHistory.slice(-8).map((m) => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }],
+          })),
+          { role: 'user', parts: [{ text: userText }] },
+        ];
+        
+        const result = await geminiModel.generateContent({
+          systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
+          contents: contextMessages 
+        });
+        const responseText = result.response.text();
+        
+        // Sometimes the model wraps it in markdown despite instructions
+        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        
+        const xp = parsed.xp_awarded || 0;
+        addChatMessage(personaId, { role: 'assistant', content: parsed.reply, xp });
+        if (xp !== 0) addDynamicXP(personaId, xp);
+        
+        setIsGenerating(false);
+        setMode('gemini');
+        return;
+      } catch (err) {
+        console.warn('Gemini call failed, falling back to next tier:', err);
+      }
+    }
+
+    // Tier 2: live Claude when the player supplied an API key (Career app → Settings)
     if (hasApiKey()) {
       try {
         const text = await claudeComplete({
@@ -206,8 +241,8 @@ export default function DecisionCenter() {
       {/* Header */}
       <div style={{ padding: '12px 16px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontWeight: 'bold' }}>Decision Center · Stakeholders</div>
-        <div style={{ fontSize: '12px', color: hasApiKey() ? '#2ea043' : mode === 'window-ai' || mode === 'webgpu' ? '#2ea043' : c.dim }}>
-          {hasApiKey() ? '● Claude (API key)' : mode === 'window-ai' ? '● Local Chrome AI' : mode === 'webgpu' ? '● WebGPU Active' : mode === 'scripted' ? '◦ Scripted mode' : '○ WebGPU Standby'}
+        <div style={{ fontSize: '12px', color: mode === 'gemini' || hasApiKey() ? '#2ea043' : mode === 'window-ai' || mode === 'webgpu' ? '#2ea043' : c.dim }}>
+          {mode === 'gemini' ? '● Gemini Active' : hasApiKey() ? '● Claude (API key)' : mode === 'window-ai' ? '● Local Chrome AI' : mode === 'webgpu' ? '● WebGPU Active' : mode === 'scripted' ? '◦ Scripted mode' : '○ WebGPU Standby'}
         </div>
       </div>
 
@@ -245,7 +280,7 @@ export default function DecisionCenter() {
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <Bubble c={c} role="assistant">{persona.intro}</Bubble>
         {history.map((msg, i) => (
-          <Bubble key={i} c={c} role={msg.role}>{msg.content}</Bubble>
+          <Bubble key={i} c={c} role={msg.role} xp={msg.xp}>{msg.content}</Bubble>
         ))}
         {streaming !== null && <Bubble c={c} role="assistant">{streaming || '…'}</Bubble>}
         {isGenerating && streaming === null && (
@@ -301,7 +336,7 @@ export default function DecisionCenter() {
   );
 }
 
-function Bubble({ c, role, children }) {
+function Bubble({ c, role, children, xp }) {
   const isUser = role === 'user';
   return (
     <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
@@ -313,6 +348,11 @@ function Bubble({ c, role, children }) {
         lineHeight: 1.5, fontSize: '14px', whiteSpace: 'pre-wrap',
       }}>
         {children}
+        {xp !== undefined && xp !== 0 && (
+          <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 'bold', color: xp > 0 ? '#2ea043' : '#da3633' }}>
+            {xp > 0 ? `+${xp}` : xp} XP
+          </div>
+        )}
       </div>
     </div>
   );

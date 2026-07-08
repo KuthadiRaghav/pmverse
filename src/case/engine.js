@@ -3,7 +3,7 @@
 // sqlSeed, sqlMissions, leadership rule, memoRubric, metrics. The engine turns
 // (caseDef, state) into XP, grades, audits, and portfolio artifacts.
 
-export const XP_DIMS = ['Discovery', 'Analytics', 'Strategy', 'Leadership', 'Communication'];
+export const XP_DIMS = ['Discovery', 'Analytics', 'Strategy', 'Leadership', 'Communication', 'Negotiation'];
 
 // Cumulative across all cases (each case maxes ~400)
 export const RANKS = [
@@ -30,6 +30,7 @@ export function initialState(caseDef) {
     readChats: [],
     replies: {},
     channelPosts: {},
+    dynamicXP: {}, // { 'maya': 10, 'dev': -5 }
     // Wall-clock timestamps per stage entry — drives real-time message drip
     stageAt: { arrival: Date.now() },
   };
@@ -62,12 +63,14 @@ export function computeXP(caseDef, state) {
   if (d?.followUp && state.followUpChoice) {
     followUpBonus = d.followUp.options[state.followUpChoice]?.xpBonus || 0;
   }
+  const dynamicXPTotal = Object.values(state.dynamicXP || {}).reduce((a, b) => a + b, 0);
   return {
     Discovery: Math.min(interviewed.length, 4) * 20,
     Analytics: analytics,
     Strategy: d ? Math.max(0, d.quality + followUpBonus) : 0,
     Leadership: leadership,
     Communication: Math.min(questions * 5, 60),
+    Negotiation: dynamicXPTotal,
   };
 }
 
